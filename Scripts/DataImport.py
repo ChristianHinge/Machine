@@ -1,6 +1,8 @@
 ## exercise 1.5.5
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
 
 # In this exercise we will rely on pandas for some of the processing steps:
 import pandas as pd
@@ -9,7 +11,7 @@ import pandas as pd
 # Upon inspection, we saw that the data.data was infact a file in the
 # format of a CSV-file with a ".data" extention instead.  
 file_path = '../Data/car.data'
-# First of we simply read the file in using readtable, however, we need to
+# First off we simply read the file in using readtable, however, we need to
 # tell the function that the file is tab-seperated. We also need to specify
 # that the header is in the second row:
 data = pd.read_csv(file_path, sep=',', header=None)
@@ -35,6 +37,22 @@ data.columns=attributeNames
 car_names = np.array(data.make)
 fuel_system_types = np.unique(data["fuel-system"])
 fuel_systems = np.array(data["fuel-system"])
+make=np.array(data["make"])
+
+#One-Out-of-K for Fuel_systems
+value=fuel_systems
+# integer encode
+label_encoder = LabelEncoder()
+integer_encoded = label_encoder.fit_transform(value)
+print(integer_encoded)
+# binary encode
+onehot_encoder = OneHotEncoder(sparse=False)
+integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
+onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
+print(np.shape(onehot_encoded))
+# invert first example
+#inverted = label_encoder.inverse_transform([np.argmax(onehot_encoded[0, :])])
+#print(inverted)
 
 #data = data.drop(['make'],axis=1)
 #data = data.drop(['fuel-system'],axis=1)
@@ -50,7 +68,7 @@ fuel_systems = np.array(data["fuel-system"])
 for col in attributeNames:
     data[col] = data[col].replace('?','NaN')
 print(attributeNames[17])
-print(data["fuel-system"])
+#print(data["fuel-system"])
 
 # the data has some zero values that the README.txt tolds us were missing
 # values - this was specifically for the attributes mpg and displacement,
