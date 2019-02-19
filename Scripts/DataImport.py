@@ -1,4 +1,3 @@
-## exercise 1.5.5
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
@@ -6,25 +5,37 @@ from sklearn.preprocessing import OneHotEncoder
 
 # In this exercise we will rely on pandas for some of the processing steps:
 import pandas as pd
+def oneOutOfK(value):
+     #One-Out-of-K for Fuel_systems
+     # integer encode
+     label_encoder = LabelEncoder()
+     integer_encoded = label_encoder.fit_transform(value)
+     print(integer_encoded)
+     # binary encode
+     onehot_encoder = OneHotEncoder(sparse=False)
+     integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
+     onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
+     print(np.shape(onehot_encoded))
+     # invert first example
+     #inverted = label_encoder.inverse_transform([np.argmax(onehot_encoded[0, :])])
+     #print(inverted)
+     return onehot_encoded
 
 # We start by defining the path to the file that we're we need to load.
-# Upon inspection, we saw that the data.data was infact a file in the
-# format of a CSV-file with a ".data" extention instead.  
 file_path = '../Data/car.data'
 # First off we simply read the file in using readtable, however, we need to
 # tell the function that the file is tab-seperated. We also need to specify
-# that the header is in the second row:
+# that there is no header
 data = pd.read_csv(file_path, sep=',', header=None)
 
 
-# We extract the attribute names:
+# We manually type the attribute names
 attributeNames = np.asarray(["symboling", "normalized-losses", "make", "fuel-type","aspiration", "num-of-doors", 
                             "body-style", "drive-wheels", "engine-location", "wheel-base", "length", "width", "height", 
                             "curb-weight", "engine-type", "num-of-cylinders", "engine-size","fuel-system","bore","stroke", 
                             "compression-ratio","horsepower", "peak-rpm", "city-mpg", "highway-mpg", "price"])
-stringColumnIndices = []
+# We assign the attribute names to the data columns
 data.columns=attributeNames
-
 
 
 # As we progress through this script, we might change which attributes are
@@ -36,24 +47,11 @@ data.columns=attributeNames
 # for now, and then remove it from data:
 car_names = np.array(data.make)
 fuel_system_types = np.unique(data["fuel-system"])
-fuel_systems = np.array(data["fuel-system"])
+#fuel_systems = np.array(data["fuel-system"])
 make=np.array(data["make"])
 
-#One-Out-of-K for Fuel_systems
-value=fuel_systems
-# integer encode
-label_encoder = LabelEncoder()
-integer_encoded = label_encoder.fit_transform(value)
-print(integer_encoded)
-# binary encode
-onehot_encoder = OneHotEncoder(sparse=False)
-integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
-onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
-print(np.shape(onehot_encoded))
-# invert first example
-#inverted = label_encoder.inverse_transform([np.argmax(onehot_encoded[0, :])])
-#print(inverted)
-
+fuel_systems=oneOutOfK(np.array(data["fuel-system"]))
+print(fuel_systems)
 #data = data.drop(['make'],axis=1)
 #data = data.drop(['fuel-system'],axis=1)
 
@@ -67,7 +65,6 @@ print(np.shape(onehot_encoded))
 # them with not a number, NaN:
 for col in attributeNames:
     data[col] = data[col].replace('?','NaN')
-print(attributeNames[17])
 #print(data["fuel-system"])
 
 # the data has some zero values that the README.txt tolds us were missing
@@ -161,9 +158,9 @@ data_drop_disp_then_missing = data[np.logical_not(obs_w_missing_wo_displacement)
 # A simply way of imputing them is to replace the missing values
 # with the median of the attribute. We would have to do this for the
 # missing values for attributes 1 and 3:
-data_imputed = data.copy();
+data_imputed = data.copy()
 for att in [0, 2]:
      # We use nanmedian to ignore the nan values
     impute_val = np.nanmedian(data[:, att])
     idx = missing_idx[:, att]
-    data_imputed[idx, att] = impute_val;
+    data_imputed[idx, att] = impute_val
