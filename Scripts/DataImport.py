@@ -6,7 +6,7 @@ from sklearn.preprocessing import OneHotEncoder
 # In this exercise we will rely on pandas for some of the processing steps:
 import pandas as pd
 def oneOutOfK(value):
-     #One-Out-of-K for Fuel_systems
+     #One-Out-of-K
      # integer encode
      label_encoder = LabelEncoder()
      integer_encoded = label_encoder.fit_transform(value)
@@ -15,9 +15,7 @@ def oneOutOfK(value):
      onehot_encoder = OneHotEncoder(sparse=False)
      integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
      onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
-     # invert first example
-     #inverted = label_encoder.inverse_transform([np.argmax(onehot_encoded[0, :])])
-     #print(inverted)
+    
      return onehot_encoded
 
 # We start by defining the path to the file that we're we need to load.
@@ -39,6 +37,15 @@ data.columns=attributeNames
 #Changing "?" with "NaN"
 for col in attributeNames:
     data[col] = data[col].replace('?','NaN')
+    data[col] = data[col].replace('two','2')
+    data[col] = data[col].replace('three','3')
+    data[col] = data[col].replace('four','4')
+    data[col] = data[col].replace('five','5')
+    data[col] = data[col].replace('six','6')
+    data[col] = data[col].replace('eight','8')
+    data[col] = data[col].replace('twelve','12')
+    
+print(np.array(data["num-of-doors"]))    
 
 # As we progress through this script, we might change which attributes are
 # stored where. For simplicity in presenting the processing steps, we wont
@@ -50,25 +57,51 @@ for col in attributeNames:
     
 #Remember types of attribute
 car_names = np.unique(data["make"])
+fuel_types_names= np.unique(data["fuel-type"])
+aspiration_types=np.unique(data["aspiration"])
+body_style_names=np.unique(data["body-style"])
+drive_wheels_types=np.unique(data["drive-wheels"])
+engine_location_types=np.unique(data["engine-location"])
+engine_type_names=np.unique(data["engine-type"])
 fuel_system_types = np.unique(data["fuel-system"])
 
 #One Out of K Columns
 make=oneOutOfK(np.array(data["make"]))
+fuel_type=oneOutOfK(np.array(data["fuel-type"]))
+aspiration=oneOutOfK(np.array(data["aspiration"]))
+body_style=oneOutOfK(np.array(data["body-style"]))
+drive_wheels=oneOutOfK(np.array(data["drive-wheels"]))
+engine_location=oneOutOfK(np.array(data["engine-location"]))
+engine_type=oneOutOfK(np.array(data["engine-type"]))
 fuel_systems=oneOutOfK(np.array(data["fuel-system"]))
 
 #Delete columns
 data = data.drop(['make'],axis=1)
+data = data.drop(['fuel-type'],axis=1)
+data = data.drop(['aspiration'],axis=1)
+data = data.drop(['body-style'],axis=1)
+data = data.drop(['drive-wheels'],axis=1)
+data = data.drop(['engine-location'],axis=1)
+data = data.drop(['engine-type'],axis=1)
 data = data.drop(['fuel-system'],axis=1)
 
 #Assemble matrix with new columns
-data = np.hstack((data,make,fuel_systems))
+data = np.hstack((data,make, fuel_type, aspiration, body_style,drive_wheels,engine_location,engine_type,fuel_systems))
 
 #Delete attributes from attributeNames
 attributeNames=np.delete(attributeNames, attributeNames.tolist().index("make"))
+attributeNames=np.delete(attributeNames, attributeNames.tolist().index("fuel-type"))
+attributeNames=np.delete(attributeNames, attributeNames.tolist().index("aspiration"))
+attributeNames=np.delete(attributeNames, attributeNames.tolist().index("body-style"))
+attributeNames=np.delete(attributeNames, attributeNames.tolist().index("drive-wheels"))
+attributeNames=np.delete(attributeNames, attributeNames.tolist().index("engine-location"))
+attributeNames=np.delete(attributeNames, attributeNames.tolist().index("engine-type"))
+attributeNames=np.delete(attributeNames, attributeNames.tolist().index("fuel-system"))
 
 #Add new names to attributeNames
-attributeNames=np.hstack((attributeNames,car_names,fuel_system_types))
 
+attributeNames=np.hstack((attributeNames,car_names , fuel_types_names, aspiration_types, body_style_names,drive_wheels_types,engine_location_types,engine_type_names,fuel_system_types))
+data=np.vstack((attributeNames,data))
 
 # Inspect messy data by e.g.:
 #print(data.to_string())
