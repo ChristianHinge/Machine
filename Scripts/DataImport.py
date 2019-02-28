@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
-
+import categoric2numeric
 # In this exercise we will rely on pandas for some of the processing steps:
 import pandas as pd
-def oneOutOfK(value):
+"""def oneOutOfK(value):
      #One-Out-of-K
      # integer encode
      label_encoder = LabelEncoder()
@@ -17,7 +17,7 @@ def oneOutOfK(value):
      onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
     
      return onehot_encoded
-
+"""
 # We start by defining the path to the file that we're we need to load.
 file_path = '../Data/car.data'
 # First off we simply read the file in using readtable, however, we need to
@@ -27,12 +27,15 @@ data = pd.read_csv(file_path, sep=',', header=None)
 
 
 # We manually type the attribute names
-attributeNames = np.asarray(["symboling", "normalized-losses", "make", "fuel-type","aspiration", "num-of-doors", 
+attributeNames = ["symboling", "normalized-losses", "make", "fuel-type","aspiration", "num-of-doors", 
                             "body-style", "drive-wheels", "engine-location", "wheel-base", "length", "width", "height", 
                             "curb-weight", "engine-type", "num-of-cylinders", "engine-size","fuel-system","bore","stroke", 
-                            "compression-ratio","horsepower", "peak-rpm", "city-mpg", "highway-mpg", "price"])
+                            "compression-ratio","horsepower", "peak-rpm", "city-mpg", "highway-mpg", "price"]
 # We assign the attribute names to the data columns
 data.columns=attributeNames
+
+data.drop(["normalized-losses"],axis=1)
+attributeNames.remove("normalized-losses")
 
 #Changing "?" with "NaN"
 for col in attributeNames:
@@ -45,7 +48,6 @@ for col in attributeNames:
     data[col] = data[col].replace('eight','8')
     data[col] = data[col].replace('twelve','12')
     
-print(np.array(data["num-of-doors"]))    
 
 # As we progress through this script, we might change which attributes are
 # stored where. For simplicity in presenting the processing steps, we wont
@@ -56,6 +58,9 @@ print(np.array(data["num-of-doors"]))
 # for now, and then remove it from data:
     
 #Remember types of attribute
+
+toBeKencodedColNames = ["make","fuel-type","aspiration","body-style","drive-wheels","engine-location","engine-type","fuel-system"]
+
 car_names = np.unique(data["make"])
 fuel_types_names= np.unique(data["fuel-type"])
 aspiration_types=np.unique(data["aspiration"])
@@ -65,43 +70,49 @@ engine_location_types=np.unique(data["engine-location"])
 engine_type_names=np.unique(data["engine-type"])
 fuel_system_types = np.unique(data["fuel-system"])
 
+
+
+
 #One Out of K Columns
-make=oneOutOfK(np.array(data["make"]))
-fuel_type=oneOutOfK(np.array(data["fuel-type"]))
-aspiration=oneOutOfK(np.array(data["aspiration"]))
-body_style=oneOutOfK(np.array(data["body-style"]))
-drive_wheels=oneOutOfK(np.array(data["drive-wheels"]))
-engine_location=oneOutOfK(np.array(data["engine-location"]))
-engine_type=oneOutOfK(np.array(data["engine-type"]))
-fuel_systems=oneOutOfK(np.array(data["fuel-system"]))
+dictK = {}
+for colName in toBeKencodedColNames:
+     X_num, attribute_names = categoric2numeric.categoric2numeric(data[colName])
+     tempDataFrame = pd.DataFrame(data = X_num, columns=attribute_names)
+     for i in range(len(attribute_names)):
+          data[attribute_names[i]] = X_num[:,i]
+     #data.merge(tempDataFrame)
+     dictK[colName] = attribute_names
 
 #Delete columns
-data = data.drop(['make'],axis=1)
-data = data.drop(['fuel-type'],axis=1)
-data = data.drop(['aspiration'],axis=1)
-data = data.drop(['body-style'],axis=1)
-data = data.drop(['drive-wheels'],axis=1)
-data = data.drop(['engine-location'],axis=1)
-data = data.drop(['engine-type'],axis=1)
-data = data.drop(['fuel-system'],axis=1)
+for col in toBeKencodedColNames:
+     data.drop([col],axis=1)
 
-#Assemble matrix with new columns
-data = np.hstack((data,make, fuel_type, aspiration, body_style,drive_wheels,engine_location,engine_type,fuel_systems))
+#Delete One-out-of-K-encoded attributes from attributeNames
+for col in toBeKencodedColNames:
+     attributeNames.remove(col)
 
-#Delete attributes from attributeNames
-attributeNames=np.delete(attributeNames, attributeNames.tolist().index("make"))
-attributeNames=np.delete(attributeNames, attributeNames.tolist().index("fuel-type"))
-attributeNames=np.delete(attributeNames, attributeNames.tolist().index("aspiration"))
-attributeNames=np.delete(attributeNames, attributeNames.tolist().index("body-style"))
-attributeNames=np.delete(attributeNames, attributeNames.tolist().index("drive-wheels"))
-attributeNames=np.delete(attributeNames, attributeNames.tolist().index("engine-location"))
-attributeNames=np.delete(attributeNames, attributeNames.tolist().index("engine-type"))
-attributeNames=np.delete(attributeNames, attributeNames.tolist().index("fuel-system"))
+print(data.head)
+#Normilization of all other attributes
+for attr in attributeNames:
+     data[attr]=(data[attr]-np.nanmean(data[attr]))/(np.nanstd(data[attr]))
+
+#Normilization of one-out-of-K
+oneOutOfKColumns = [car_names , fuel_types_names, aspiration_types, body_style_names,drive_wheels_types,engine_location_types,engine_type_names,fuel_system_types]
+for catAttr in oneOutOfKColumns:
+     k = len(catAttr)
+     for i in range(k):
+          data[catAttr[i]]=(data[catAttr[i]]-np.mean(data[catAttr[i]]))/(np.std(data[catAttr[i]])*k**0.5)
+
+
+
 
 #Add new names to attributeNames
-
-attributeNames=np.hstack((attributeNames,car_names , fuel_types_names, aspiration_types, body_style_names,drive_wheels_types,engine_location_types,engine_type_names,fuel_system_types))
+attributeNamesWithK=np.hstack((attributeNames,car_names , fuel_types_names, aspiration_types, body_style_names,drive_wheels_types,engine_location_types,engine_type_names,fuel_system_types))
 data=np.vstack((attributeNames,data))
+
+
+
+
 
 # Inspect messy data by e.g.:
 #print(data.to_string())
