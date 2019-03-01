@@ -1,28 +1,18 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
-import categoric2numeric
-# In this exercise we will rely on pandas for some of the processing steps:
 import pandas as pd
-"""def oneOutOfK(value):
-     #One-Out-of-K
-     # integer encode
-     label_encoder = LabelEncoder()
-     integer_encoded = label_encoder.fit_transform(value)
-     #print(integer_encoded)
-     # binary encode
-     onehot_encoder = OneHotEncoder(sparse=False)
-     integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
-     onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
-    
-     return onehot_encoded
-"""
-# We start by defining the path to the file that we're we need to load.
+import matplotlib.pyplot as plt
+import categoric2numeric
+from scipy.linalg import svd
+import pickle
+
+GENERATE_PLOTS = True
+
+######## Loading Data ########
+
+# We start by the path to the file that we're we need to load.
 file_path = '../Data/car.data'
-# First off we simply read the file in using readtable, however, we need to
-# tell the function that the file is tab-seperated. We also need to specify
-# that there is no header
+
+# The file is comma-seperated and there there is no header
 data = pd.read_csv(file_path, sep=',', header=None)
 
 
@@ -34,43 +24,44 @@ attributeNames = ["symboling", "normalized-losses", "make", "fuel-type","aspirat
 # We assign the attribute names to the data columns
 data.columns=attributeNames
 
-data.drop(["normalized-losses"],axis=1)
+#Removing normalized-losses due to substantial NaNs
+data = data.drop(["normalized-losses"],axis=1)
 attributeNames.remove("normalized-losses")
 
-#Changing "?" with "NaN"
+#Changing "?" with "NaN" and number-words with the actual value
 for col in attributeNames:
     data[col] = data[col].replace('?','NaN')
-    data[col] = data[col].replace('two','2')
-    data[col] = data[col].replace('three','3')
-    data[col] = data[col].replace('four','4')
-    data[col] = data[col].replace('five','5')
-    data[col] = data[col].replace('six','6')
-    data[col] = data[col].replace('eight','8')
-    data[col] = data[col].replace('twelve','12')
-    
+    data[col] = data[col].replace('two',2)
+    data[col] = data[col].replace('three',3)
+    data[col] = data[col].replace('four',4)
+    data[col] = data[col].replace('five',5)
+    data[col] = data[col].replace('six',6)
+    data[col] = data[col].replace('eight',8)
+    data[col] = data[col].replace('twelve',12)
 
-# As we progress through this script, we might change which attributes are
-# stored where. For simplicity in presenting the processing steps, we wont
-# keep track of those changes in attributeNames in this example script.
+#Changing some of the numeric data types to integers/floats instead of strings
+data["num-of-doors"] = pd.to_numeric(data["num-of-doors"],downcast='integer',errors='coerce')
+data["bore"] = pd.to_numeric(data["bore"],errors='coerce')
+data["stroke"] = pd.to_numeric(data["stroke"],errors='coerce')
+data["peak-rpm"] = pd.to_numeric(data["peak-rpm"],downcast='integer',errors='coerce')
+data["horsepower"] = pd.to_numeric(data["horsepower"],downcast='integer',errors='coerce')
+data["price"] = pd.to_numeric(data["price"],downcast='integer',errors='coerce')
 
-# The last column is a unique string for each observation defining the
-# car make and model. We decide to extract this in a variable for itself
-# for now, and then remove it from data:
-    
-#Remember types of attribute
+#Export Data with no NaN values
+data.dropna().to_pickle("../Data/dOriginal")
 
+#Attributes that are to be k-encoded
 toBeKencodedColNames = ["make","fuel-type","aspiration","body-style","drive-wheels","engine-location","engine-type","fuel-system"]
 
-car_names = np.unique(data["make"])
-fuel_types_names= np.unique(data["fuel-type"])
-aspiration_types=np.unique(data["aspiration"])
-body_style_names=np.unique(data["body-style"])
-drive_wheels_types=np.unique(data["drive-wheels"])
-engine_location_types=np.unique(data["engine-location"])
-engine_type_names=np.unique(data["engine-type"])
-fuel_system_types = np.unique(data["fuel-system"])
-
-
+#Extracting values of columns to be K-encoded.
+car_names = np.unique(data["make"]).tolist()
+fuel_types_names= np.unique(data["fuel-type"]).tolist()
+aspiration_types=np.unique(data["aspiration"]).tolist()
+body_style_names=np.unique(data["body-style"]).tolist()
+drive_wheels_types=np.unique(data["drive-wheels"]).tolist()
+engine_location_types=np.unique(data["engine-location"]).tolist()
+engine_type_names=np.unique(data["engine-type"]).tolist()
+fuel_system_types = np.unique(data["fuel-system"]).tolist()
 
 
 #One Out of K Columns
@@ -79,143 +70,124 @@ for colName in toBeKencodedColNames:
      X_num, attribute_names = categoric2numeric.categoric2numeric(data[colName])
      tempDataFrame = pd.DataFrame(data = X_num, columns=attribute_names)
      for i in range(len(attribute_names)):
+          if np.isnan(X_num).any():
+               print(attribute_names)
           data[attribute_names[i]] = X_num[:,i]
-     #data.merge(tempDataFrame)
      dictK[colName] = attribute_names
 
 #Delete columns
 for col in toBeKencodedColNames:
-     data.drop([col],axis=1)
-
-#Delete One-out-of-K-encoded attributes from attributeNames
-for col in toBeKencodedColNames:
+     data = data.drop([col],axis=1)
      attributeNames.remove(col)
 
-print(data.head)
+#Print data with NaNs 
+#print("point 1", data.loc[data.isna().any(axis=1),data.isna().any(axis=0)])
+
+
+#Remove data withs NaNs
+data = data.dropna(axis=0)
+plt.figure()
+plt.hist(data["price"], density=True, histtype='step', cumulative=-1, label='Reversed emp.')
+#plt.show()
+
+####BOX-PLOT#######
+if GENERATE_PLOTS:
+     for col in attributeNames:
+          plt.figure()
+          plt.boxplot(data[col].values)
+          plt.ylabel(col)
+          plt.title('Car data set - boxplot')
+          plt.savefig("../Figures/"+col+".png")
+
+
+####SCATTER-PLOT###
+#Creating data for scatter plots
+
+if GENERATE_PLOTS: 
+     dataForScatter=["num-of-doors","num-of-cylinders","symboling"]
+     scatterData=data
+     scatterAttr=attributeNames
+     for col in dataForScatter:
+          scatterData = scatterData.drop([col],axis=1)
+          scatterAttr.remove(col)
+
+     classLabels = data["num-of-cylinders"].values
+     classNames = sorted(set(classLabels))
+     classDict = dict(zip(classNames,range(len(classNames))))
+     y = np.array([classDict[value] for value in classLabels])
+     M=len(scatterAttr)
+     C=len(classNames)
+     plt.figure(figsize=(scatterData.shape))
+     for m1 in range(M):
+          for m2 in range(M):
+               plt.subplot(M, M, m1*M + m2 + 1)
+               for c in range(C):
+                    class_mask = (y==c)
+                    #print(class_mask)
+                    #print(m2)
+                    #print(data.values[np.array(class_mask),m2])
+                    plt.plot(scatterData.values[class_mask,m2], scatterData.values[class_mask,m1], '.')
+                    if m1==M-1:
+                         plt.xlabel(scatterAttr[m2])
+                    else:
+                         plt.xticks([])
+                    if m2==0:
+                         plt.ylabel(scatterAttr[m1])
+                    else:
+                         #plt.yticks([])
+                    #ylim(0,X.max()*1.1)
+                    #xlim(0,X.max()*1.1)
+          plt.legend(classNames)
+
+     plt.savefig("../Figures/ScatterPlot.png")
+
+#Normilization of one-out-of-K
+oneOutOfKColumns = [car_names , fuel_types_names, aspiration_types, body_style_names,drive_wheels_types,engine_location_types,engine_type_names,fuel_system_types]
+#print(oneOutOfKColumns)
+for att in oneOutOfKColumns:
+     k = len(att)
+
+     for i in range(k):
+          mu = np.mean(data[att[i]])
+          sd = np.std(data[att[i]])
+          if sd == 0:
+               data = data.drop(att[i],axis=1)
+          else:    
+               data[att[i]]=(data[att[i]]-k)/(sd*k**0.5)
+
 #Normilization of all other attributes
 for attr in attributeNames:
      data[attr]=(data[attr]-np.nanmean(data[attr]))/(np.nanstd(data[attr]))
 
-#Normilization of one-out-of-K
-oneOutOfKColumns = [car_names , fuel_types_names, aspiration_types, body_style_names,drive_wheels_types,engine_location_types,engine_type_names,fuel_system_types]
-for catAttr in oneOutOfKColumns:
-     k = len(catAttr)
-     for i in range(k):
-          data[catAttr[i]]=(data[catAttr[i]]-np.mean(data[catAttr[i]]))/(np.std(data[catAttr[i]])*k**0.5)
+
+#Save all column names
+attributeNamesWithK=list(data)
+
+#Export Data with normalized and one-out-of-k-encoded data
+data.to_pickle("../Data/dNorm")
+
+with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
+    pickle.dump(dictK, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
+########## PCA ###########
+if GENERATE_PLOTS:
+     # PCA by computing SVD of Y
+     U,S,V = svd(data,full_matrices=False)
 
-#Add new names to attributeNames
-attributeNamesWithK=np.hstack((attributeNames,car_names , fuel_types_names, aspiration_types, body_style_names,drive_wheels_types,engine_location_types,engine_type_names,fuel_system_types))
-data=np.vstack((attributeNames,data))
+     # Compute variance explained by principal components
+     rho = (S*S) / (S*S).sum() 
+     threshold = 0.9
 
-
-
-
-
-# Inspect messy data by e.g.:
-#print(data.to_string())
-
-
-
-# the data has some zero values that the README.txt tolds us were missing
-# values - this was specifically for the attributes mpg and displacement,
-# so we're careful only to replace the zeros in these attributes, since a
-# zero might be correct for some other variables:
-#data.mpg = data.mpg.replace({'0': np.nan})
-#data.displacement = data.displacement.replace({'0': np.nan})
-
-# We later on find out that a value of 99 for the mpg is not value that is
-# within reason for the MPG of the cars in this dataset. The observations
-# that has this value of MPG is therefore incorrect, and we should treat
-# the value as missing. How would you add a line of code to this data
-# cleanup script to account for this information?
-
-## X,y-format
-# If the modelling problem of interest was a classification problem where
-# we wanted to classify the origin attribute, we could now identify obtain
-# the data in the X,y-format as so:
-# =============================================================================
-# data = np.array(data.get_values(), dtype=np.float64)
-# X_c = data[:, :-1].copy()
-# y_c = data[:, -1].copy()
-# 
-# # However, if the problem of interest was to model the MPG based on the
-# # other attributes (a regression problem), then the X,y-format is
-# # obtained as:
-# X_r = data[:, 1:].copy()
-# y_r = data[:, 0].copy()
-# 
-# # Since origin is categorical variable, we can do as in previos exercises
-# # and do a one-out-of-K encoding:
-# origin = np.array(X_r[:, -1], dtype=int).T-1
-# K = origin.max()+1
-# origin_encoding = np.zeros((origin.size, K))
-# origin_encoding[np.arange(origin.size), origin] = 1
-# X_r = np.concatenate((X_r[:, :-1], origin_encoding),axis=1)
-# # Since the README.txt doesn't supply a lot of information about what the
-# # levels in the origin variable mean, you'd have to either make an educated
-# # guess based on the values in the context, or preferably obtain the
-# # information from any papers that might be references in the README.
-# # In this case, you can inspect origin and car_names, to see that (north)
-# # american makes are all value 0 (try looking at car_names[origin == 0],
-# # whereas origin value 1 is European, and value 2 is Asian.
-# 
-# ## Missing values
-# # In the above X,y-matrices, we still have the missing values. In the
-# # following we will go through how you could go about handling the missing
-# # values before making your X,y-matrices as above.
-# 
-# # Once we have identified all the missing data, we have to handle it
-# # some way. Various apporaches can be used, but it is important
-# # to keep it mind to never do any of them blindly. Keep a record of what
-# # you do, and consider/discuss how it might affect your modelling.
-# 
-# # The simplest way of handling missing values is to drop any records 
-# # that display them, we do this by first determining where there are
-# # missing values:
-# missing_idx = np.isnan(data)
-# # Observations with missing values have a row-sum in missing_idx
-# # which is greater than zero:
-# obs_w_missing = np.sum(missing_idx, 1) > 0
-# data_drop_missing_obs = data[np.logical_not(obs_w_missing), :]
-# # This reduces us to 15 observations of the original 29.
-# 
-# # Another approach is to first investigate where the missing values are.
-# # A quick way to do this is to visually look at the missing_idx:
-# plt.title('Visual inspection of missing values')
-# plt.imshow(missing_idx)
-# plt.ylabel('Observations'); plt.xlabel('Attributes');
-# plt.show()
-# 
-# # From such a plot, we can see that the issue is the third column, the
-# # displacement attribute. This can be confirmed by e.g. doing:
-# #np.sum(missing_idx, 0)
-# # which shows that 12 observations are missing a value in the third column. 
-# # Therefore, another way to move forward is to disregard displacement 
-# # (for now) and remove the attribute. We then remove the few
-# # remaining observations with missing values:
-# cols = np.ones((data.shape[1]), dtype=bool)
-# cols[2] = 0
-# data_wo_displacement = data[:, cols] 
-# obs_w_missing_wo_displacement = np.sum(np.isnan(data_wo_displacement),1)>0
-# data_drop_disp_then_missing = data[np.logical_not(obs_w_missing_wo_displacement), :]
-# # Now we have kept all but two of the observations. This however, doesn't
-# # necesarrily mean that this approach is superior to the previous one,
-# # since we have now also lost any and all information that we could have
-# # gotten from the displacement attribute. 
-# 
-# # One could impute the missing values - "guess them", in some
-# # sense - while trying to minimize the impact of the guess.
-# # A simply way of imputing them is to replace the missing values
-# # with the median of the attribute. We would have to do this for the
-# # missing values for attributes 1 and 3:
-# data_imputed = data.copy()
-# for att in [0, 2]:
-#      # We use nanmedian to ignore the nan values
-#     impute_val = np.nanmedian(data[:, att])
-#     idx = missing_idx[:, att]
-#     data_imputed[idx, att] = impute_val
-# =============================================================================
+     # Plot variance explained
+     plt.figure()
+     plt.plot(range(1,len(rho)+1),rho,'x-')
+     plt.plot(range(1,len(rho)+1),np.cumsum(rho),'o-')
+     plt.plot([1,len(rho)],[threshold, threshold],'k--')
+     plt.title('Variance explained by principal components')
+     plt.xlabel('Principal component')
+     plt.ylabel('Variance explained')
+     plt.legend(['Individual','Cumulative','Threshold'])
+     plt.grid()
 
