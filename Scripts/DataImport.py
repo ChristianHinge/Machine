@@ -5,7 +5,7 @@ import categoric2numeric
 
 import pickle
 
-GENERATE_PLOTS = False
+GENERATE_PLOTS = True
 
 ######## Loading Data ########
 
@@ -97,7 +97,7 @@ if GENERATE_PLOTS:
           plt.boxplot(data[col].values)
           plt.ylabel(col)
           plt.title('Car data set - boxplot')
-          plt.savefig("../Figures/"+col+".png")
+          plt.savefig("../Figures/BoxPlots/"+col+".png")
 
 
 ####SCATTER-PLOT###

@@ -44,9 +44,12 @@ for b,bName in zip(bounds,boundNames):
 
 dOriginal["price-cat"] = temp
 
+
+
+######### Scatter-Plot ############
 #dOriginal["price-cat"] = temp
 if GENERATE_PLOTS: 
-    plt.figure()
+    #plt.figure()
     attsToBeRemoved=["num-of-doors","num-of-cylinders","symboling"]
     scatterData=dOriginal
     scatterAttr=attNoK
@@ -64,26 +67,25 @@ if GENERATE_PLOTS:
     y = np.array([classDict[value] for value in classLabels])
     M=len(scatterAttr)
     C=len(bounds)
-    plt.figure(figsize=(scatterData.shape))
+    #plt.figure(figsize=(scatterData.shape))
     for m1 in range(M):
+        plt.figure(figsize=(15,10))
+        plt.suptitle('Correlation for: '+scatterAttr[m1])
         for m2 in range(M):
-            plt.subplot(M, M, m1*M + m2 + 1)
+            plt.subplot(M/2, 2, m2 + 1)
             for c in range(C):
                 class_mask = (y==c)
                 #print(class_mask)
                 #print(m2)
                 #print(data.values[np.array(class_mask),m2])
                 plt.plot(scatterData.values[class_mask,m2], scatterData.values[class_mask,m1], '.')
-                if m1==M-1:
-                        plt.xlabel(scatterAttr[m2])
-                else:
-                        plt.xticks([])
-                if m2==0:
-                        plt.ylabel(scatterAttr[m1])
-                else:
-                        plt.yticks([])
+                plt.xlabel(scatterAttr[m2])
+                plt.xticks([])
+                plt.yticks([])        
                 #ylim(0,X.max()*1.1)
                 #xlim(0,X.max()*1.1)
         plt.legend(classNames)
+        plt.savefig("../Figures/ScatterPlots/ScatterPlot"+scatterAttr[m1]+".png")
+        
     plt.show()
-    plt.savefig("../Figures/ScatterPlot.png")
+    
