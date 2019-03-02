@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import categoric2numeric
-from scipy.linalg import svd
+
 import pickle
 
-GENERATE_PLOTS = True
+GENERATE_PLOTS = False
 
 ######## Loading Data ########
 
@@ -134,7 +134,7 @@ if GENERATE_PLOTS:
                     if m2==0:
                          plt.ylabel(scatterAttr[m1])
                     else:
-                         #plt.yticks([])
+                         plt.yticks([])
                     #ylim(0,X.max()*1.1)
                     #xlim(0,X.max()*1.1)
           plt.legend(classNames)
@@ -153,7 +153,7 @@ for att in oneOutOfKColumns:
           if sd == 0:
                data = data.drop(att[i],axis=1)
           else:    
-               data[att[i]]=(data[att[i]]-k)/(sd*k**0.5)
+               data[att[i]]=(data[att[i]]-mu)/(sd*k**0.5)
 
 #Normilization of all other attributes
 for attr in attributeNames:
@@ -165,29 +165,9 @@ attributeNamesWithK=list(data)
 
 #Export Data with normalized and one-out-of-k-encoded data
 data.to_pickle("../Data/dNorm")
-
+print(data)
 with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
     pickle.dump(dictK, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-
-########## PCA ###########
-if GENERATE_PLOTS:
-     # PCA by computing SVD of Y
-     U,S,V = svd(data,full_matrices=False)
-
-     # Compute variance explained by principal components
-     rho = (S*S) / (S*S).sum() 
-     threshold = 0.9
-
-     # Plot variance explained
-     plt.figure()
-     plt.plot(range(1,len(rho)+1),rho,'x-')
-     plt.plot(range(1,len(rho)+1),np.cumsum(rho),'o-')
-     plt.plot([1,len(rho)],[threshold, threshold],'k--')
-     plt.title('Variance explained by principal components')
-     plt.xlabel('Principal component')
-     plt.ylabel('Variance explained')
-     plt.legend(['Individual','Cumulative','Threshold'])
-     plt.grid()
 
