@@ -103,43 +103,7 @@ if GENERATE_PLOTS:
 ####SCATTER-PLOT###
 #Creating data for scatter plots
 
-if GENERATE_PLOTS: 
-     dataForScatter=["num-of-doors","num-of-cylinders","symboling"]
-     scatterData=data
-     scatterAttr=attributeNames
-     for col in dataForScatter:
-          scatterData = scatterData.drop([col],axis=1)
-          scatterAttr.remove(col)
 
-     classLabels = data["num-of-cylinders"].values
-     classNames = sorted(set(classLabels))
-     classDict = dict(zip(classNames,range(len(classNames))))
-     y = np.array([classDict[value] for value in classLabels])
-     M=len(scatterAttr)
-     C=len(classNames)
-     plt.figure(figsize=(scatterData.shape))
-     for m1 in range(M):
-          for m2 in range(M):
-               plt.subplot(M, M, m1*M + m2 + 1)
-               for c in range(C):
-                    class_mask = (y==c)
-                    #print(class_mask)
-                    #print(m2)
-                    #print(data.values[np.array(class_mask),m2])
-                    plt.plot(scatterData.values[class_mask,m2], scatterData.values[class_mask,m1], '.')
-                    if m1==M-1:
-                         plt.xlabel(scatterAttr[m2])
-                    else:
-                         plt.xticks([])
-                    if m2==0:
-                         plt.ylabel(scatterAttr[m1])
-                    else:
-                         plt.yticks([])
-                    #ylim(0,X.max()*1.1)
-                    #xlim(0,X.max()*1.1)
-          plt.legend(classNames)
-
-     plt.savefig("../Figures/ScatterPlot.png")
 
 #Normilization of one-out-of-K
 oneOutOfKColumns = [car_names , fuel_types_names, aspiration_types, body_style_names,drive_wheels_types,engine_location_types,engine_type_names,fuel_system_types]
@@ -168,6 +132,9 @@ data.to_pickle("../Data/dNorm")
 print(data)
 with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
     pickle.dump(dictK, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+with open('../Data/non_hot_k_list.pickle', 'wb') as handle:
+    pickle.dump(attributeNames, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
