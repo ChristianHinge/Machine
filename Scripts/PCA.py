@@ -4,7 +4,7 @@ from scipy.linalg import svd
 from scipy import stats
 import numpy as np
 
-GENERATE_PLOTS = False
+GENERATE_PLOTS = True
 
 priceArray = dOriginal["price"].values
 priceArray = np.sort(priceArray)
@@ -82,7 +82,7 @@ if GENERATE_PLOTS:
                 #print(m2)
                 #print(data.values[np.array(class_mask),m2])
                 plt.plot(scatterData.values[class_mask,m2], scatterData.values[class_mask,m1], '.')
-                plt.xlabel(scatterAttr[m2])
+                plt.xlabel("Correlation with "+ scatterAttr[m2]+ ": "+str(round(CorMatrix.iloc[m1][m2],2)))
                 plt.xticks([])
                 plt.yticks([])        
                 #ylim(0,X.max()*1.1)
