@@ -70,8 +70,8 @@ for colName in toBeKencodedColNames:
      X_num, attribute_names = categoric2numeric.categoric2numeric(data[colName])
      tempDataFrame = pd.DataFrame(data = X_num, columns=attribute_names)
      for i in range(len(attribute_names)):
-          if np.isnan(X_num).any():
-               print(attribute_names)
+#          if np.isnan(X_num).any():
+#               print(attribute_names)
           data[attribute_names[i]] = X_num[:,i]
      dictK[colName] = attribute_names
 
@@ -79,6 +79,7 @@ for colName in toBeKencodedColNames:
 for col in toBeKencodedColNames:
      data = data.drop([col],axis=1)
      attributeNames.remove(col)
+
 
 #Print data with NaNs 
 #print("point 1", data.loc[data.isna().any(axis=1),data.isna().any(axis=0)])
@@ -96,12 +97,8 @@ if GENERATE_PLOTS:
           plt.figure()
           plt.boxplot(data[col].values)
           plt.ylabel(col)
-          plt.title('Car data set - boxplot')
+          plt.title(col+' - boxplot')
           plt.savefig("../Figures/BoxPlots/"+col+".png")
-
-
-####SCATTER-PLOT###
-#Creating data for scatter plots
 
 
 
@@ -129,7 +126,6 @@ attributeNamesWithK=list(data)
 
 #Export Data with normalized and one-out-of-k-encoded data
 data.to_pickle("../Data/dNorm")
-print(data)
 with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
     pickle.dump(dictK, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
