@@ -1,15 +1,14 @@
 from CarsData import *
 from matplotlib import pyplot as plt
 from scipy.linalg import svd
+from scipy import stats
 import numpy as np
 
-GENERATE_PLOTS = True
+GENERATE_PLOTS = False
 
 priceArray = dOriginal["price"].values
-print(dOriginal)
 priceArray = np.sort(priceArray)
 bounds = priceArray[::len(priceArray)//4][1:-1]
-print(bounds)
 plt.plot(priceArray,'.r')
 for b in bounds:
     plt.plot([1,len(priceArray)],[b,b],'k--')
@@ -44,25 +43,29 @@ for b,bName in zip(bounds,boundNames):
 
 dOriginal["price-cat"] = temp
 
+attsToBeRemoved=["num-of-doors","num-of-cylinders","symboling"]
+scatterData=dOriginal
+scatterAttr=attNoK
+for col in attsToBeRemoved:
+    scatterData = scatterData.drop([col],axis=1)
+    scatterAttr.remove(col)
 
+for col in oneHotKDict:
+    scatterData = scatterData.drop([col],axis=1)
+
+#########Correlation Matrix#############
+CorData=scatterData.drop(["price-cat"],axis=1)
+CorMatrix=pd.DataFrame(data=np.corrcoef(CorData, rowvar=False),index=scatterAttr, columns=scatterAttr)
 
 ######### Scatter-Plot ############
 #dOriginal["price-cat"] = temp
 if GENERATE_PLOTS: 
     #plt.figure()
-    attsToBeRemoved=["num-of-doors","num-of-cylinders","symboling"]
-    scatterData=dOriginal
-    scatterAttr=attNoK
-    for col in attsToBeRemoved:
-        scatterData = scatterData.drop([col],axis=1)
-        scatterAttr.remove(col)
+    
 
-    for col in oneHotKDict:
-        scatterData = scatterData.drop([col],axis=1)
-
+   ####################################### 
     classLabels = dOriginal["price-cat"].values
     classNames = sorted(set(classLabels))
-    print(classLabels)
     classDict = dict(zip(classNames,range(len(classNames))))
     y = np.array([classDict[value] for value in classLabels])
     M=len(scatterAttr)
@@ -71,7 +74,7 @@ if GENERATE_PLOTS:
     for m1 in range(M):
         plt.figure(figsize=(15,10))
         plt.suptitle('Correlation for: '+scatterAttr[m1])
-        for m2 in range(M):
+        for m2 in range(M):              
             plt.subplot(M/2, 2, m2 + 1)
             for c in range(C):
                 class_mask = (y==c)
