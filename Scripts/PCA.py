@@ -4,19 +4,20 @@ from scipy.linalg import svd
 from scipy import stats
 import numpy as np
 
-GENERATE_PLOTS = False
+#Classification for later use
+"""
 priceArray = dOriginal["price"].values
 priceArray = np.sort(priceArray)
 bounds = priceArray[::len(priceArray)//4][1:-1]
 plt.plot(priceArray,'.r')
 for b in bounds:
     plt.plot([1,len(priceArray)],[b,b],'k--')
-
+"""
 
 # PCA by computing SVD of Y
 U,S,V = svd(dNorm,full_matrices=False)
 
-# Compute variance explained by principal components
+######### Variance explained #########
 rho = (S*S) / (S*S).sum() 
 threshold = 0.9
 
@@ -30,61 +31,48 @@ plt.xlabel('Principal component')
 plt.ylabel('Variance explained')
 plt.legend(['Individual','Cumulative','Threshold'])
 plt.grid()
+plt.savefig("../Figures/ExplainedVariance.png")
+
+######### The first 3 principle components #########
+pcs = [0,1,2]
+legendStrs = ['PC'+str(e+1) for e in pcs]
+c = ['r','g','b']
+bw = 0.8
+f, handles = plt.subplots(1,3,figsize=(10,5))
+for i in pcs:
+    plt.subplot(1,3,i+1)
+    noAtt = 16
+    r = np.arange(noAtt)
+    indices = np.abs(V[:,i]).argsort()[-noAtt:][::-1]    
+    plt.bar(r+1-(1-bw), V[:,i][indices], width=bw,align='center')
+    xlabels = np.array(list(dNorm))[indices]
+    plt.xticks(r+bw, xlabels,rotation = 'vertical')
+    if i==0:
+        plt.ylabel('Component coefficients')
+    plt.grid()
+    plt.title(f"PCA Component {i} Coefficients")
+plt.gcf().subplots_adjust(bottom=0.3)
+plt.savefig("../Figures/PCcoefficients.png")
 
 
-temp = np.array(["low"]*len(dOriginal["price"]))
-boundNames = ["medium","high","very high"]
-for b,bName in zip(bounds,boundNames):
-    temp[dOriginal["price"].values>b] = bName
+######### Data projection on first 3 principle components #########
 
-dOriginal["price-cat"] = temp
+# Project the centered data onto principal component space
+Z = dNorm.values @ V
 
+# Plot PCA of the data
+fig = plt.figure(figsize=(10,5))
+#Z = array(Z)
+fig.suptitle("PCA Projection",size=20)
+plt.subplot(1,2,1)
+plt.plot(Z[:,0], Z[:,1], 'o', alpha=.5)
+plt.xlabel('PC 1',fontsize=14)
+plt.ylabel('PC 2',fontsize=14)
 
+plt.subplot(1,2,2)
+plt.plot(Z[:,0], Z[:,2], 'o', alpha=.5)
+plt.xlabel('PC 1',fontsize=14)
+plt.ylabel('PC 3',fontsize=14)
 
-scatterData=dOriginal
-scatterAttr=attNoK
-
-for col in oneHotKDict:
-    scatterData = scatterData.drop([col],axis=1)
-
-#########Standard Statistics#############    
-statMatrix=pd.DataFrame(data=np.zeros((17,3)),index=scatterAttr, columns=["Mean","Variance", "Standard Deviation"])
-for col in scatterAttr:
-     statMatrix["Mean"][col]=round(np.mean(scatterData[col].values),2)
-     statMatrix["Variance"][col]=round(np.var(scatterData[col].values),2)
-     statMatrix["Standard Deviation"][col]=round(np.std(scatterData[col].values),2)
-
-######### Removal of ordinal dicrete attributes ############
-attsToBeRemoved=["num-of-doors","num-of-cylinders","symboling"]
-for col in attsToBeRemoved:
-    scatterData = scatterData.drop([col],axis=1)
-    scatterAttr.remove(col)    
-
-#########Correlation Matrix#############
-CorData=scatterData.drop(["price-cat"],axis=1)
-CorMatrix=pd.DataFrame(data=np.corrcoef(CorData, rowvar=False),index=scatterAttr, columns=scatterAttr)
-
-######### Scatter-Plot ############
-if GENERATE_PLOTS:     
-
-    classLabels = dOriginal["price-cat"].values
-    classNames = sorted(set(classLabels))
-    classDict = dict(zip(classNames,range(len(classNames))))
-    y = np.array([classDict[value] for value in classLabels])
-    M=len(scatterAttr)
-    C=len(bounds)
-    for m1 in range(M):
-        plt.figure(figsize=(15,10))
-        plt.suptitle('Correlation for: '+scatterAttr[m1])
-        for m2 in range(M):              
-            plt.subplot(M/2, 2, m2 + 1)
-            for c in range(C):
-                class_mask = (y==c)
-                plt.plot(scatterData.values[class_mask,m2], scatterData.values[class_mask,m1], '.')
-                plt.xlabel("Correlation with "+ scatterAttr[m2]+ ": "+str(round(CorMatrix.iloc[m1][m2],2)))
-                plt.xticks([])
-                plt.yticks([])        
-        plt.legend(classNames)
-        plt.savefig("../Figures/ScatterPlots/ScatterPlot"+scatterAttr[m1]+".png")    
-    plt.show()
-    
+plt.tight_layout(rect=[0, 0, 1, 0.95])
+plt.savefig('../Figures/PCprojection.png')
