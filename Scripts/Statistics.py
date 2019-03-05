@@ -5,15 +5,15 @@ import numpy as np
 #Dataframe with original non-nominal attributes
 dForMatrix = dOriginal[attNoK]
 
-attsToBeRemoved=["num-of-doors","num-of-cylinders","symboling"]
-for col in attsToBeRemoved:
-    attNoK.remove(col)
+#attsToBeRemoved=["num-of-doors","num-of-cylinders","symboling"]
+#for col in attsToBeRemoved:
+#    attNoK.remove(col)
 
 #Dataframe with normalized continouus attributes
 dForCorr = dNorm[attNoK]
 
 ######### Standard Statistics #############    
-statMatrix=pd.DataFrame(data=np.zeros((17,3)),index=list(dForMatrix), columns=["Mean","Variance", "Standard Deviation"])
+statMatrix=pd.DataFrame(data=np.zeros((12,3)),index=list(dForMatrix), columns=["Mean","Variance", "Standard Deviation"])
 for col in list(dForMatrix):
      statMatrix["Mean"][col]=round(np.mean(dForMatrix[col].values),2)
      statMatrix["Variance"][col]=round(np.var(dForMatrix[col].values),2)
@@ -60,13 +60,13 @@ M=len(list(dForCorr))
 
 #Plotting in columns of 5 and rows of 14
 #3 Figures in total
-lowerBound = [0,5,10]
-upperBound = [5,10,14]
+lowerBound = [0,4,8]
+upperBound = [4,8,12]
 
 for l,u in zip(lowerBound,upperBound):
 
     #Figure, size, and title
-    fig, axes = plt.subplots(nrows=14, ncols=u-l)
+    fig, axes = plt.subplots(nrows=12, ncols=u-l)
     fig.suptitle("Scatterplots for: " + ', '.join(list(dForCorr)[l:u]),fontsize = 16)
     fig.set_size_inches(14*0.7,23*0.7)
     ratio = fig.get_size_inches()[0]/fig.get_size_inches()[1]
@@ -86,7 +86,7 @@ for l,u in zip(lowerBound,upperBound):
             axes[m2][plotCol].set_yticks([])
 
             # If the subplot is at the left or bottom edge, show labels
-            if m2 == 13:
+            if m2 == 11:
                 axes[m2][plotCol].set_xlabel(list(dForCorr)[m1])
             if m1 == l:
                 axes[m2][plotCol].set_ylabel(list(dForCorr)[m2])
