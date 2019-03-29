@@ -42,15 +42,17 @@ ax.set_yticklabels(list(corMatrix))
 # Rotate the tick labels and set their alignment.
 plt.setp(ax.get_xticklabels(), rotation='vertical')
 
+"""
 # Loop over data dimensions and create text annotations.
 for i in range(len(list(corMatrix))):
     for j in range(len(list(corMatrix))):
         text = ax.text(j, i, round(corMatrix.values[i, j],2),
                        ha="center", va="center", color="w")
-
+"""
 ax.set_title("Correlation matrix of continous attributes")
 fig.colorbar(im)
 fig.tight_layout()
+plt.savefig("../Figures/CorrelationMatrix")
 plt.show()
 
 

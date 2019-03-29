@@ -11,15 +11,6 @@ file_path = '../Data/pokemon.csv'
 # The file is comma-seperated and there there is no header
 data = pd.read_csv(file_path, sep=',')
 
-# We manually type the attribute names
-#attributeNames = ["symboling", "normalized-losses", "make", "fuel-type","aspiration", "num-of-doors", 
-#                            "body-style", "drive-wheels", "engine-location", "wheel-base", "length", "width", "height", 
-#                            "curb-weight", "engine-type", "num-of-cylinders", "engine-size","fuel-system","bore","stroke", 
-#                            "compression-ratio","horsepower", "peak-rpm", "city-mpg", "highway-mpg", "price"]
-
-# We assign the attribute names to the data columns
-#data.columns=attributeNames
-
 ######### Data Processing #########
 
 #Removing normalized-losses due to substantial NaNs
@@ -35,22 +26,11 @@ data = pd.read_csv(file_path, sep=',')
     #data[col] = data[col].replace('six',6)
     #data[col] = data[col].replace('eight',8)
     #data[col] = data[col].replace('twelve',12)
-"""
-#Changing some of the numeric data types to integers/floats instead of strings
-data["num-of-doors"] = pd.to_numeric(data["num-of-doors"],downcast='integer',errors='coerce')
-data["bore"] = pd.to_numeric(data["bore"],errors='coerce')
-data["stroke"] = pd.to_numeric(data["stroke"],errors='coerce')
-data["peak-rpm"] = pd.to_numeric(data["peak-rpm"],downcast='integer',errors='coerce')
-data["horsepower"] = pd.to_numeric(data["horsepower"],downcast='integer',errors='coerce')
-data["price"] = pd.to_numeric(data["price"],downcast='integer',errors='coerce')
-"""
-#Export Data with no NaN values
 
 
 
 
 #Attributes that are to be k-encoded
-#toBeKencodedColNames = ["make","fuel-type","aspiration","body-style","drive-wheels","engine-location","engine-type","fuel-system"]
 toBeKencodedColNames = ['Type_1',"Type_2","isLegendary","Color","hasGender","Egg_Group_1","Egg_Group_2","hasMegaEvolution","Body_Style"]
 
 for col in toBeKencodedColNames:
@@ -61,20 +41,20 @@ data["Pr_Male"] = data["Pr_Male"].fillna(np.nanmean(data["Pr_Male"].values))
 dOriginal = data.copy()
 data = data.drop("Name",axis = 1)
 data = data.drop("Number", axis = 1)
-#Extracting values of columns to be K-encoded.
-"""
-car_names = np.unique(data["make"]).tolist()
-fuel_types_names= np.unique(data["fuel-type"]).tolist()
-aspiration_types=np.unique(data["aspiration"]).tolist()
-body_style_names=np.unique(data["body-style"]).tolist()
-drive_wheels_types=np.unique(data["drive-wheels"]).tolist()
-engine_location_types=np.unique(data["engine-location"]).tolist()
-engine_type_names=np.unique(data["engine-type"]).tolist()
-fuel_system_types = np.unique(data["fuel-system"]).tolist()
-"""
+
+
+#Log transformation
+data["Weight_kg"]=np.log(data["Weight_kg"])
+data["Height_m"]=np.log(data["Height_m"])
+dLogTransform = data.copy()
+
+#Data for Linear Regression
+dLinearReg=data.copy()
+
 #One-out-of-K-encoding
 attributeNames = list(data)
 dictK = {}
+
 for colName in toBeKencodedColNames:
      X_num, attribute_names = categoric2numeric.categoric2numeric(data[colName])
      tempDataFrame = pd.DataFrame(data = X_num, columns=attribute_names)
@@ -88,13 +68,15 @@ for colName in toBeKencodedColNames:
 #Delete old columns that have been k-encoded
 for col in toBeKencodedColNames:
      data = data.drop([col],axis=1)
+     dLinearReg = dLinearReg.drop([col],axis=1)
      attributeNames.remove(col)
+     
+     
 
-#Print data with NaNs 
-#print("point 1", data.loc[data.isna().any(axis=1),data.isna().any(axis=0)])
 
 #Remove data withs NaNs
 data = data.dropna(axis=0)
+dLinearReg=dLinearReg.dropna(axis=0)
 
 
 
@@ -124,6 +106,9 @@ for attr in attributeNames:
 
 data.to_pickle("../Data/dNorm")
 dOriginal.to_pickle("../Data/dOriginal")
+dLogTransform.to_pickle("../Data/dLogTransform")
+dLinearReg.to_pickle("../Data/dLinearReg")
+
 
 with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
     pickle.dump(dictK, handle, protocol=pickle.HIGHEST_PROTOCOL)

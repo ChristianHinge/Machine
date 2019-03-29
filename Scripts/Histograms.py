@@ -10,7 +10,7 @@ u = np.floor(np.sqrt(len(attNoK))); v = np.ceil(float(len(attNoK))/u)
 i = 1
 for col in attNoK:
     plt.subplot(u,v,i)
-    plt.hist(dOriginal[col])
+    plt.hist(dLogTransform[col])
     plt.xlabel(col)
     i = i+1
 
