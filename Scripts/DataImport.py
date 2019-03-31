@@ -13,25 +13,16 @@ data = pd.read_csv(file_path, sep=',')
 
 ######### Data Processing #########
 
-#Removing normalized-losses due to substantial NaNs
-#data = data.drop(["normalized-losses"],axis=1)
-#attributeNames.remove("normalized-losses")
-
-#Changing "?" with "NaN" and number-words with the actual value
-
-    #data[col] = data[col].replace('two',2)
-    #data[col] = data[col].replace('three',3)
-    #data[col] = data[col].replace('four',4)
-    #data[col] = data[col].replace('five',5)
-    #data[col] = data[col].replace('six',6)
-    #data[col] = data[col].replace('eight',8)
-    #data[col] = data[col].replace('twelve',12)
-
+#Changing booleans to binary
+booleanAttr=["isLegendary","hasGender","hasMegaEvolution"]
+for col in booleanAttr:
+    data[col] = data[col].replace('False',0)
+    data[col] = data[col].replace('True',1)
 
 
 
 #Attributes that are to be k-encoded
-toBeKencodedColNames = ['Type_1',"Type_2","isLegendary","Color","hasGender","Egg_Group_1","Egg_Group_2","hasMegaEvolution","Body_Style"]
+toBeKencodedColNames = ['Type_1',"Type_2","Color","Egg_Group_1","Egg_Group_2","Body_Style"]
 
 for col in toBeKencodedColNames:
      data[col] = data[col].fillna("None")
@@ -49,10 +40,11 @@ data["Height_m"]=np.log(data["Height_m"])
 dLogTransform = data.copy()
 
 #Data for Linear Regression
-dLinearReg=data.copy()
+#dLinearReg=data.copy()
 
 #One-out-of-K-encoding
 attributeNames = list(data)
+attrNames=attributeNames.copy()
 dictK = {}
 
 for colName in toBeKencodedColNames:
@@ -65,10 +57,11 @@ for colName in toBeKencodedColNames:
 
      #Appending K-encoded columns
      dictK[colName] = attribute_names
+     attrNames.append(colName)
 #Delete old columns that have been k-encoded
 for col in toBeKencodedColNames:
      data = data.drop([col],axis=1)
-     dLinearReg = dLinearReg.drop([col],axis=1)
+     #dLinearReg = dLinearReg.drop([col],axis=1)
      attributeNames.remove(col)
      
      
@@ -76,7 +69,7 @@ for col in toBeKencodedColNames:
 
 #Remove data withs NaNs
 data = data.dropna(axis=0)
-dLinearReg=dLinearReg.dropna(axis=0)
+#dLinearReg=dLinearReg.dropna(axis=0)
 
 
 
@@ -107,7 +100,7 @@ for attr in attributeNames:
 data.to_pickle("../Data/dNorm")
 dOriginal.to_pickle("../Data/dOriginal")
 dLogTransform.to_pickle("../Data/dLogTransform")
-dLinearReg.to_pickle("../Data/dLinearReg")
+#dLinearReg.to_pickle("../Data/dLinearReg")
 
 
 with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
@@ -115,6 +108,9 @@ with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
 
 with open('../Data/non_hot_k_list.pickle', 'wb') as handle:
     pickle.dump(attributeNames, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
+with open('../Data/allAttributes.pickle', 'wb') as handle:
+    pickle.dump(attrNames, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 print(np.std(data.values,axis=0))
 

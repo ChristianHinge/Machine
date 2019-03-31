@@ -12,3 +12,6 @@ with open('../Data/1_hot_K_dict.pickle', 'rb') as handle:
     oneHotKDict = pickle.load(handle)
 with open('../Data/non_hot_k_list.pickle', 'rb') as handle:
     attNoK = pickle.load(handle)
+    
+with open('../Data/allAttributes.pickle', 'rb') as handle:
+    allAtt = pickle.load(handle)    
