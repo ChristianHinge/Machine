@@ -30,6 +30,8 @@ for col in toBeKencodedColNames:
 data["Pr_Male"] = data["Pr_Male"].fillna(np.nanmean(data["Pr_Male"].values))
 
 dOriginal = data.copy()
+
+data = data.drop("Total",axis = 1)
 data = data.drop("Name",axis = 1)
 data = data.drop("Number", axis = 1)
 

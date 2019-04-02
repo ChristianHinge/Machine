@@ -10,7 +10,6 @@ allAtt=dNorm.columns.values.tolist()
 # Attack is predicted. Attack is continous ratio in the interval 5 to 165. 
 attack_idx = allAtt.index('Attack')
 y = dNorm.iloc[:,attack_idx]
-#print(y)
 X_cols = list(range(0,attack_idx)) + list(range(attack_idx+1,len(dNorm.columns.values)))
 
 X = dNorm.iloc[:,X_cols]
@@ -97,7 +96,7 @@ for train_index, test_index in CV.split(X,y):
     y_train = y[train_index]
     X_test = X[test_index]
     y_test = y[test_index]
-    #internal_cross_validation = 10    
+    internal_cross_validation = 10    
     opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X_train, y_train, lambdas)
 
     # Standardize outer fold based on training set, and save the mean and standard
