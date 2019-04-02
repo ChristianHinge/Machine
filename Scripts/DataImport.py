@@ -44,7 +44,6 @@ dLogTransform = data.copy()
 
 #One-out-of-K-encoding
 attributeNames = list(data)
-attrNames=attributeNames.copy()
 dictK = {}
 
 for colName in toBeKencodedColNames:
@@ -57,7 +56,6 @@ for colName in toBeKencodedColNames:
 
      #Appending K-encoded columns
      dictK[colName] = attribute_names
-     attrNames.append(colName)
 #Delete old columns that have been k-encoded
 for col in toBeKencodedColNames:
      data = data.drop([col],axis=1)
@@ -108,9 +106,6 @@ with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
 
 with open('../Data/non_hot_k_list.pickle', 'wb') as handle:
     pickle.dump(attributeNames, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
-with open('../Data/allAttributes.pickle', 'wb') as handle:
-    pickle.dump(attrNames, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 print(np.std(data.values,axis=0))
 

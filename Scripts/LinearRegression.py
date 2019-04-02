@@ -1,4 +1,4 @@
-from CarsData import *
+from ProjectData import *
 from matplotlib.pylab import figure, plot, subplot, xlabel, ylabel, hist, show
 import sklearn.linear_model as lm
 import numpy as np
@@ -30,9 +30,10 @@ X = np.asarray(np.bmat('X, Xhp, Xatk, Xdef, Xspdef, Xspatk, Xspd'))
 
 #All attributes included in Linear Regression
 for name in allAtt:
-    idx=allAtt.index(name)
-    tmp =np.array(dNorm)[:,idx].reshape(-1,1)
-    X = np.asarray(np.bmat('X, tmp')) 
+    if(name!="Catch_Rate"):
+        idx=allAtt.index(name)
+        tmp =np.array(dNorm)[:,idx].reshape(-1,1)
+        X = np.asarray(np.bmat('X, tmp')) 
     
 
 # Fit ordinary least squares regression model
