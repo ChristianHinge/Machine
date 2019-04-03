@@ -1,5 +1,6 @@
 from ProjectData import *
 from matplotlib.pylab import *
+from matplotlib import pyplot as plt
 import sklearn.linear_model as lm
 from sklearn import model_selection
 import numpy as np
@@ -76,6 +77,7 @@ CV = model_selection.KFold(K, shuffle=True)
 
 # Values of lambda
 lambdas = np.power(10.,range(-5,9))
+#lambdas = np.array([1, 10,50,100,150,200,250,300,400,500,600,700,800,900,1000,10000,100000,1000000])
 
 # Initialize variables
 #T = len(lambdas)
@@ -114,7 +116,7 @@ for train_index, test_index in CV.split(X,y):
     XtX = X_train.T @ X_train
     
     
-    #### Baseline is her e######
+    #### Baseline is here ######
     # Compute mean squared error without using the input data at all
     Error_train_nofeatures[k] = np.square(y_train-y_train.mean()).sum(axis=0)/y_train.shape[0]
     Error_test_nofeatures[k] = np.square(y_test-y_test.mean()).sum(axis=0)/y_test.shape[0]
@@ -141,28 +143,31 @@ for train_index, test_index in CV.split(X,y):
 
     # Display the results for the last cross-validation fold
     if k == K-1:
-        figure(k, figsize=(12,8))
-        subplot(1,2,1)
+        plt.figure(k, figsize=(12,8))
+        plt.subplot(1,2,1)
         semilogx(lambdas,mean_w_vs_lambda.T[:,1:],'.-') # Don't plot the bias term
-        xlabel('Regularization factor')
-        ylabel('Mean Coefficient Values')
-        grid()
+        plt.xlabel('Regularization factor')
+        plt.ylabel('Mean Coefficient Values')
+        plt.grid()
         # You can choose to display the legend, but it's omitted for a cleaner 
         # plot, since there are many attributes
         #legend(attributeNames[1:], loc='best')
         
-        subplot(1,2,2)
-        title('Optimal lambda: 1e{0}'.format(np.log10(opt_lambda)))
-        loglog(lambdas,train_err_vs_lambda.T,'b.-',lambdas,test_err_vs_lambda.T,'r.-')
-        xlabel('Regularization factor')
-        ylabel('Squared error (crossvalidation)')
-        legend(['Train error','Test error'])
-        grid()
+        plt.subplot(1,2,2)
+        plt.title('Optimal lambda: 1e{0}'.format(np.log10(opt_lambda)))
+        plt.loglog(lambdas,train_err_vs_lambda.T,'b.-',lambdas,test_err_vs_lambda.T,'r.-')
+        plt.xlabel('Regularization factor')
+        plt.ylabel('Squared error (crossvalidation)')
+        plt.legend(['Train error','Test error'])
+        plt.grid()
+        plt.savefig("../Figures/GeneralizationError.png")
     
     # To inspect the used indices, use these print statements
-    #print('Cross validation fold {0}/{1}:'.format(k+1,K))
+    print('Cross validation fold {0}/{1}:'.format(k+1,K))
     #print('Train indices: {0}'.format(train_index))
     #print('Test indices: {0}\n'.format(test_index))
+    print('Optimal Lambda: {0}'.format(opt_lambda))
+    print('Test Error: {0}\n'.format(Error_test_rlr[k]))
 
     k+=1
 

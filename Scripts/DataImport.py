@@ -16,10 +16,8 @@ data = pd.read_csv(file_path, sep=',')
 #Changing booleans to binary
 booleanAttr=["isLegendary","hasGender","hasMegaEvolution"]
 for col in booleanAttr:
-    data[col] = data[col].replace('False',0)
-    data[col] = data[col].replace('True',1)
-
-
+    data[col] = data[col].replace(False,0)
+    data[col] = data[col].replace(True,1)
 
 #Attributes that are to be k-encoded
 toBeKencodedColNames = ['Type_1',"Type_2","Color","Egg_Group_1","Egg_Group_2","Body_Style"]
@@ -41,8 +39,7 @@ data["Weight_kg"]=np.log(data["Weight_kg"])
 data["Height_m"]=np.log(data["Height_m"])
 dLogTransform = data.copy()
 
-#Data for Linear Regression
-#dLinearReg=data.copy()
+
 
 #One-out-of-K-encoding
 attributeNames = list(data)
@@ -69,8 +66,9 @@ for col in toBeKencodedColNames:
 
 #Remove data withs NaNs
 data = data.dropna(axis=0)
-#dLinearReg=dLinearReg.dropna(axis=0)
 
+#Data for Logistic Regression
+dLogReg=data.copy()
 
 
 #Normilization of one-out-of-K
@@ -100,7 +98,7 @@ for attr in attributeNames:
 data.to_pickle("../Data/dNorm")
 dOriginal.to_pickle("../Data/dOriginal")
 dLogTransform.to_pickle("../Data/dLogTransform")
-#dLinearReg.to_pickle("../Data/dLinearReg")
+dLogReg.to_pickle("../Data/dLogReg")
 
 
 with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
