@@ -14,7 +14,8 @@ data = pd.read_csv(file_path, sep=',')
 ######### Data Processing #########
 
 #Changing booleans to binary
-booleanAttr=["isLegendary","hasGender","hasMegaEvolution"]
+booleanAttr=["isLegendary", "hasMegaEvolution"]
+#booleanAttr=["isLegendary","hasGender","hasMegaEvolution"]
 for col in booleanAttr:
     data[col] = data[col].replace(False,0)
     data[col] = data[col].replace(True,1)
