@@ -10,6 +10,7 @@ allAtt=dNorm.columns.values.tolist()
 # Attack is predicted. Attack is continous ratio in the interval 5 to 165. 
 attack_idx = allAtt.index('Attack')
 y = dNorm.iloc[:,attack_idx]
+#print(y)
 X_cols = list(range(0,attack_idx)) + list(range(attack_idx+1,len(dNorm.columns.values)))
 
 X = dNorm.iloc[:,X_cols]
