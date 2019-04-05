@@ -16,46 +16,6 @@ X_cols = list(range(0,attack_idx)) + list(range(attack_idx+1,len(dNorm.columns.v
 
 X = dNorm.iloc[:,X_cols]
 
-
-"""
-#Some attributes included in Linear Regression
-hp_idx = allAtt.index('HP')
-Xhp = np.array(dNorm)[:,hp_idx].reshape(-1,1)
-X = np.asarray(np.bmat('X, Xhp'))
-"""
-"""
-#All attributes included in non linear parameter Linear Regression
-for name in allAtt:
-    if(name!="Attack"):
-        idx=allAtt.index(name)
-        tmp =np.array(dNorm)[:,idx].reshape(-1,1)
-        X = np.asarray(np.bmat('X, tmp')) 
-    
-"""
-# Fit ordinary least squares regression model
-model = lm.LinearRegression()
-result = model.fit(X,y)
-
-#print(result.coef)
-# Predict Catch Rate content
-y_est = model.predict(X)
-residual = y_est-y
-
-# Display plots
-figure(figsize=(12,12))
-
-subplot(4,1,1)
-plot(y, y_est, '.g')
-xlabel('Attack (true)'); ylabel('Attack (estimated)')
-
-
-subplot(4,1,3)
-hist(residual,40)
-xlabel('Residual Value'); ylabel('Amount of Residuals')
-
-
-show()
-
 ######### Regularization Parameter ###############
 attributeNames = list(X)
 
@@ -101,7 +61,7 @@ for train_index, test_index in CV.split(X,y):
     X_test = X[test_index]
     y_test = y[test_index]
     internal_cross_validation = 10    
-    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X_train, y_train, lambdas)
+    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X_train, y_train, lambdas, internal_cross_validation)
 
     # Standardize outer fold based on training set, and save the mean and standard
     # deviations since they're part of the model (they would be needed for
