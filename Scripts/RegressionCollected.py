@@ -189,7 +189,7 @@ for(k2,(train_index_o,test_index_o)) in enumerate(CV_outer.split(X,y)):
         y_test = torch.tensor(y[test_index_o], dtype=torch.float)
 
         # Train the net and determine class labels
-        net, final_loss, learning_curve = trainANN(opt_hidden_unit,4/)
+        net, final_loss, learning_curve = trainANN(opt_hidden_unit,4)
         y_test_est = net(X_test)
         learning_curves.append(learning_curve)
         
