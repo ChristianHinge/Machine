@@ -3,6 +3,7 @@ from ProjectData import *
 from sklearn import model_selection, tree
 from platform import system
 from os import getcwd
+import matplotlib.pyplot as plt
 from toolbox_02450 import windows_graphviz_call
 from matplotlib.pyplot import figure, plot, xlabel, ylabel, legend, show, boxplot
 from matplotlib.image import imread
@@ -16,6 +17,7 @@ y = np.array(dOriginal[target])
 
 dOriginal=dOriginal.drop(target,axis=1)
 dLogReg=dLogReg.drop(target,axis=1)
+#dLogReg=dLogReg.drop("Catch_Rate",axis=1)
 # Names of data objects
 dataobjectNames = list(dOriginal['Name'])
 

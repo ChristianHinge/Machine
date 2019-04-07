@@ -1,6 +1,6 @@
 from ProjectData import *
 import numpy as np
-from scipy.io import loadmat
+from scipy import stats
 from sklearn.linear_model import LogisticRegression
 from sklearn import model_selection, tree
 from toolbox_02450 import rocplot, confmatplot
@@ -60,7 +60,7 @@ for train_index, test_index in CV.split(X,y):
     Error_logreg_inner = np.empty((10,1))
     Error_dectree_inner = np.empty((10,1))
     for i in range(10):
-        model = lm.logistic.LogisticRegression(penalty='l2', C=1/lambda_interval[i], solver='liblinear' )
+        model = LogisticRegression(penalty='l2', C=1/lambda_interval[i], solver='liblinear' )
         model = model.fit(X_train, y_train)
         y_logreg = model.predict(X_test)
         Error_logreg_inner[i] = 100*(y_logreg!=y_test).sum().astype(float)/len(y_test)
@@ -97,7 +97,7 @@ else:
 # Boxplot to compare classifier error distributions
 figure()
 boxplot(np.concatenate((Error_logreg, Error_dectree),axis=1))
-xlabel('Logistic Regression   vs.   Decision Tree')
+xlabel('Logistic Regression   vs.   Classification Tree')
 ylabel('Cross-validation error [%]')
 
 show()
