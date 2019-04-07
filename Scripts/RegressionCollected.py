@@ -11,10 +11,11 @@ from ProjectData import * #All of our data
 
 
 # Data preparation and class attribute selection
-sd_atk = np.std(dOriginal["Attack"])
-mu_atk = np.mean(dOriginal["Attack"])
+
 ChosenAttributes = ["HP","Defense","Sp_Atk","Sp_Def","Speed","isLegendary","Weight_kg"]
 y_att = "Attack"
+sd_atk = np.std(dOriginal[y_att])
+mu_atk = np.mean(dOriginal[y_att])
 y = dNorm[y_att]
 X = dNorm.drop(y_att,axis=1) #dNorm is already normalized
 
