@@ -6,7 +6,7 @@ from sklearn import model_selection
 from toolbox_02450 import train_neural_net, draw_neural_net
 from scipy import stats
 from ProjectData import *
-
+from toolbox_02450 import linear_model
 # Load Matlab data file and extract variables of interest
 
 #ChosenAttributes = ["HP","Defense","Sp_Atk","Sp_Def","Speed","isLegendary","Weight_kg"]
@@ -45,6 +45,7 @@ CV_outer = model_selection.KFold(K2,shuffle=True)
 #### Parameters for neural network classifier
 hidden_unit_start = 1 #inclusive
 hidden_unit_end = 5  #exclusive    
+neurons = list(range(hidden_unit_start,hidden_unit_end))
 n_replicates = 1
 max_iter = 2000
 loss_fn = torch.nn.MSELoss() # notice how this is now a mean-squared-error loss
