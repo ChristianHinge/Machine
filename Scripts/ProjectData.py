@@ -7,6 +7,8 @@ dOriginal = pd.read_pickle("../Data/dOriginal")
 dNorm = pd.read_pickle("../Data/dNorm")
 dLogTransform = pd.read_pickle("../Data/dLogTransform")
 dLogReg = pd.read_pickle("../Data/dLogReg")
+dCT = pd.read_pickle("../Data/dCT")
+
 
 with open('../Data/1_hot_K_dict.pickle', 'rb') as handle:
     oneHotKDict = pickle.load(handle)

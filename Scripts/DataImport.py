@@ -14,11 +14,11 @@ data = pd.read_csv(file_path, sep=',')
 ######### Data Processing #########
 
 #Changing booleans to binary
-booleanAttr=["isLegendary", "hasMegaEvolution"]
-#booleanAttr=["isLegendary","hasGender","hasMegaEvolution"]
-for col in booleanAttr:
-    data[col] = data[col].replace(False,0)
-    data[col] = data[col].replace(True,1)
+#booleanAttr=["isLegendary", "hasMegaEvolution"]
+##booleanAttr=["isLegendary","hasGender","hasMegaEvolution"]
+#for col in booleanAttr:
+#    data[col] = data[col].replace(False,0)
+#    data[col] = data[col].replace(True,1)
 
 #Attributes that are to be k-encoded
 toBeKencodedColNames = ['Type_1',"Type_2","Color","Egg_Group_1","Egg_Group_2","Body_Style"]
@@ -34,6 +34,8 @@ data = data.drop("Total",axis = 1)
 data = data.drop("Name",axis = 1)
 data = data.drop("Number", axis = 1)
 
+#Data for Classification Tree
+dCT = data.copy()
 
 #Log transformation
 data["Weight_kg"]=np.log(data["Weight_kg"])
@@ -100,6 +102,7 @@ data.to_pickle("../Data/dNorm")
 dOriginal.to_pickle("../Data/dOriginal")
 dLogTransform.to_pickle("../Data/dLogTransform")
 dLogReg.to_pickle("../Data/dLogReg")
+dCT.to_pickle("../Data/dCT")
 
 
 with open('../Data/1_hot_K_dict.pickle', 'wb') as handle:
