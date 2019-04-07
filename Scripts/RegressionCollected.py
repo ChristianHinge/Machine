@@ -195,7 +195,7 @@ for(k2,(train_index_o,test_index_o)) in enumerate(CV_outer.split(X,y)):
         net_best_hidden_units = opt_hidden_unit
         best_net = net #Save for plotting
 
-    #### RLM: Train on newly found best lambda
+    #### RLM OUTER: Train on newly found best lambda
     argmin = np.argmin(np.sum(errors_LM_inner,axis=0))
     opt_lambda = lambdas[argmin]
     opt_lambdas.append(opt_lambda)
@@ -216,7 +216,7 @@ for(k2,(train_index_o,test_index_o)) in enumerate(CV_outer.split(X,y)):
         mse_best_LM = mse
         lm_best_lambda = opt_lambda
 
-    #### BASELINE
+    #### BASELINE OUTER
     se = np.square(y[test_index_o]-np.mean(y[train_index_o]))
     mse = sum(se)/len(se)
     errors_baseline_outer[k2] = mse*len(se)/N #Algorithm 6
