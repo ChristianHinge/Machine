@@ -37,6 +37,7 @@ CV_outer = model_selection.KFold(K2,shuffle=True)
 
 iterations = np.array(range(1,12))*100 #The inner cross-validation fold will find the best parameters among these
 opt_n_iterations = [] # The best parameters found in the inner CV folds, to be used in the outer folds
+ANN_saved_performance = np.zeros((K2,len(iterations)))
 
 n_replicates = 3
 loss_fn = torch.nn.MSELoss()
@@ -73,29 +74,26 @@ lambdas = np.array(list(range(21)),dtype=int)*10 # The inner cross-validation fo
 lambdas[0] = 1
 print(lambdas)
 opt_lambdas = [] # The best parameters found in the inner CV folds, to be used in the outer folds
-
-# Variables for storing the best net for later plotting
+LM_coefs = np.zeros((K2,len(attributeNames)))
+# Variables for storing the best LM for later plotting
 mse_best_LM = 100
 y_est_best_LM = None
 y_true_best_LM = None
 lm_best_lambda = None
+lm_best_weights = None
 
 #Custom functiom which makes a linear model from X_train and y_train with regularization lambda
 #and returns the prediction based on X_test. It assumes that the data is already normalized.
 def reg_lm(lambda_,X_train,y_train,X_test):
-
-    X = X_train
-    X = np.concatenate((np.ones((X.shape[0],1)),X),1)
-    mu = np.mean(X_train[:, 1:], 0)
-    X_train[:, 1:] = (X_train[:, 1:] - mu ) 
-    X_test[:, 1:] = (X_test[:, 1:] - mu ) 
+    X_train = np.concatenate((np.ones((X_train.shape[0],1)),X_train),1)
+    X_test = np.concatenate((np.ones((X_test.shape[0],1)),X_test),1)
     
     # Matrices for use in normal equation
     Xty = X_train.T @ y_train
     XtX = X_train.T @ X_train
     
     # Estimate weights for the optimal value of lambda, on entire training set
-    lambdaI = lambda_ * np.eye(M)
+    lambdaI = lambda_ * np.eye(M+1)
     lambdaI[0,0] = 0 # Do no regularize the bias term
 
     # Solve the normal equation
@@ -103,7 +101,7 @@ def reg_lm(lambda_,X_train,y_train,X_test):
     y_train_est = X_train @ w_rlr.T
     y_test_est = X_test @ w_rlr.T
 
-    return y_train_est.squeeze().transpose(), y_test_est.squeeze().transpose()
+    return y_train_est.squeeze().transpose(), y_test_est.squeeze().transpose(), w_rlr
 
 
 ### ERRORS ####
@@ -160,7 +158,7 @@ for(k2,(train_index_o,test_index_o)) in enumerate(CV_outer.split(X,y)):
         # RLM: Test each lambda.
         for l_index,l in enumerate(lambdas):
             # Model and predict
-            y_train_est, y_test_est = reg_lm(l, X[train_index],y[train_index],X[test_index])
+            y_train_est, y_test_est, w = reg_lm(l, X[train_index],y[train_index],X[test_index])
 
             # Determine the errors
             se = np.power((y_test_est-y[test_index]),2)
@@ -168,7 +166,9 @@ for(k2,(train_index_o,test_index_o)) in enumerate(CV_outer.split(X,y)):
             errors_LM_inner[k1,l_index] = mse*len(test_index)/N_inner
     
     #### ANN OUTER: Train on newly found best parameter
-    opt_hidden_unit = iterations[np.argmin(np.sum(errors_ANN_inner,axis=0))]
+    sum_errors_inner_ANN = np.sum(errors_ANN_inner,axis=0)
+    ANN_saved_performance[k2,:] = sum_errors_inner_ANN
+    opt_hidden_unit = iterations[np.argmin(sum_errors_inner_ANN)]
     opt_n_iterations.append(opt_hidden_unit)
 
     # Extract training and test set for current CV fold, convert to tensors
@@ -202,7 +202,8 @@ for(k2,(train_index_o,test_index_o)) in enumerate(CV_outer.split(X,y)):
     opt_lambdas.append(opt_lambda)
 
     # Train and predict attack power
-    y_train_est, y_test_est = reg_lm(opt_lambda, X[train_index_o],y[train_index_o],X[test_index_o])
+    y_train_est, y_test_est, weights = reg_lm(opt_lambda, X[train_index_o],y[train_index_o],X[test_index_o])
+    LM_coefs[k2,:] = weights[0,1:]
 
     # Determine MSE
     se = np.square(y_test_est-y[test_index_o]) # squared error
@@ -216,6 +217,7 @@ for(k2,(train_index_o,test_index_o)) in enumerate(CV_outer.split(X,y)):
         y_true_best_LM = y[test_index_o]
         mse_best_LM = mse
         lm_best_lambda = opt_lambda
+        lm_best_weights = weights
 
     #### BASELINE OUTER
     se = np.square(y[test_index_o]-np.mean(y[train_index_o]))
@@ -227,6 +229,20 @@ for(k2,(train_index_o,test_index_o)) in enumerate(CV_outer.split(X,y)):
 #### Plotting Results
 
 # ANN Plotting
+
+#Parameter performance
+y_dat = ANN_saved_performance
+y = np.mean(y_dat,axis=0)
+yerr = np.abs(np.quantile(y_dat-y,[0.25,0.75],axis=0))
+plt.figure(figsize=(6,6))
+plt.errorbar(iterations, y, yerr=yerr, fmt='o-',capsize=5,capthick=3,ms=10)
+plt.grid()
+plt.xlabel("Numbers of training iterations values")
+plt.ylabel("Average MSE of net")
+plt.title('Artificial neural network: Performance of optimizing parameter')
+plt.savefig('../Figures/ANN_iterations_performance.png')
+
+
 
 # Neural Net
 weights = [best_net[i].weight.data.numpy().T for i in [0,2]]
@@ -292,6 +308,19 @@ plt.grid()
 plt.savefig('../Figures/RLM_best_net.png')
 
 
+#Boxplot of weights
+fig, ax = plt.subplots()
+fig.set_figheight(5)
+fig.set_figwidth(10)
+plt.title("Logistic Regression: Attribute weights")
+plt.ylabel("Attribute weight")
+plt.boxplot(LM_coefs)
+plt.xticks(range(len(attributeNames)+1),[""]+attributeNames,rotation = 90)
+plt.tight_layout()
+plt.grid()
+plt.savefig("../Figures/RLM_weights.png",dpi=600)
+
+
 #Latex table for regressoin B
 data_table = np.zeros((K2,6))
 data_table[:,0] = np.array(range(K2),dtype=int) + 1
@@ -311,6 +340,11 @@ print("Optimal ANN max iterations: {}".format(opt_n_iterations))
 print('ANN: Estimated generalization error, MSE: {0}'.format(round(np.sum(errors_ANN_outer), 4)))
 print('Baseline: Estimated generalization error, MSE: {0}'.format(round(np.sum(errors_baseline_outer), 4)))
 print('Linear Regression: Estimated generalization error, MSE: {0}'.format(round(np.sum(errors_LM_outer), 4)))
+
+print('Weights in best RLM fold:')
+attributeNamesWoffset = ["offset"]+attributeNames
+for m in range(M+1):
+    print('{:>15} {:>15}'.format(attributeNamesWoffset[m], str(np.round(lm_best_weights[0,m],2))))
 
 
 
