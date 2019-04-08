@@ -1,0 +1,18 @@
+Optimal RLM lambdas: [40, 30, 40, 40, 40, 30, 40, 30, 30, 40]
+Optimal ANN max iterations: [500, 1100, 1000, 800, 400, 1000, 400, 500, 500, 400]
+ANN: Estimated generalization error, MSE: 0.4985
+Baseline: Estimated generalization error, MSE: 1.0023
+Linear Regression: Estimated generalization error, MSE: 0.4701
+
+=== Paired T-tests and confidence intervals ===
+
+LM vs Baseline
+Ttest_relResult(statistic=-10.582479493227607, pvalue=2.229332510679824e-06)
+[-0.8740414283095239, -0.1910229502122494]
+ANN vs Baseline
+Ttest_relResult(statistic=-10.317886973700846, pvalue=2.7560381814785015e-06)
+[-0.8357829822773897, -0.17255817999158563]
+ANN vs LM
+Ttest_relResult(statistic=2.724499236254904, pvalue=0.02343458322421789)
+[-0.042284491659092774, 0.09900770791189088]
+Scripts>

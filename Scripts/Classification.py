@@ -152,7 +152,6 @@ for train_index_o, test_index_o in CV_outer.split(X,y):
     errors_LogReg_outer[k_o]=error*len(test_index_o)/N_inner
     errors_LogReg_outer_ns[k_o]=error
     
-    
     #Save best lambda
     if error < error_best_LR:
         y_est_best_LR = y_test
@@ -198,11 +197,15 @@ alpha = 0.05
 zL = zb + sig * stats.t.ppf(alpha/2, nu);
 zH = zb + sig * stats.t.ppf(1-alpha/2, nu);
 
+#
+print("The confidence interval is[{},{}])".format(zL,zH))
+
+"""
 if zL <= 0 and zH >= 0 :
     print('Classifiers are not significantly different')        
 else:
     print('Classifiers are significantly different.')
-    
+"""
 RapportMatrix=np.hstack((np.array(opt_depths).reshape(-1,1),errors_CT_outer.reshape(-1,1), np.array(opt_lambdas).reshape(-1,1),errors_LogReg_outer.reshape(-1,1), errors_baseline_outer.reshape(-1,1)))    
    
 ErrorMatrix=np.hstack((errors_LogReg_outer.reshape(-1,1), errors_CT_outer.reshape(-1,1), errors_baseline_outer.reshape(-1,1)))    
