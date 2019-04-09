@@ -1,0 +1,17 @@
+Optimal LogReg lambdas: [1.6681005372000557, 0.21544346900318823, 1.6681005372000557, 1.6681005372000557, 0.21544346900318823, 1.6681005372000557, 0.21544346900318823, 0.21544346900318823, 1.6681005372000557, 0.21544346900318823]
+Optimal CT max iterations: [2, 2, 2, 2, 2, 2, 3, 2, 2, 2]
+LogReg: Estimated generalization error: 1.2327%
+Baseline: Estimated generalization error: 6.38%
+CT: Estimated generalization error: 1.2329%
+
+=== Paired T-tests and confidence intervals ===
+
+CT vs Baseline
+Ttest_relResult(statistic=-15.428664752187041, pvalue=8.830087403290875e-08)
+[-6.001061170197706, -4.535468510167591]
+LogReg vs Baseline
+Ttest_relResult(statistic=-9.884341555820042, pvalue=3.941716652487437e-06)
+[-6.409785489937109, -4.122939015390136]
+LogReg vs CT
+Ttest_relResult(statistic=0.005317536012985049, pvalue=0.9958732424046202)
+[-0.7659506724819193, 0.769755847519971]

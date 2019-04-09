@@ -35,11 +35,11 @@ CV_outer = model_selection.KFold(K2,shuffle=True)
 
 #### Parameters for neural network classifier
 
-iterations = np.array(range(1,12))*100 #The inner cross-validation fold will find the best parameters among these
+iterations = np.array(range(1,3))*100 #The inner cross-validation fold will find the best parameters among these
 opt_n_iterations = [] # The best parameters found in the inner CV folds, to be used in the outer folds
 ANN_saved_performance = np.zeros((K2,len(iterations)))
 
-n_replicates = 3
+n_replicates = 1
 loss_fn = torch.nn.MSELoss()
 
 learning_curves = [] # for plotting
@@ -238,7 +238,7 @@ plt.figure(figsize=(6,6))
 plt.errorbar(iterations, y, yerr=yerr, fmt='o-',capsize=5,capthick=3,ms=10)
 plt.grid()
 plt.xlabel("Numbers of training iterations values")
-plt.ylabel("Average MSE of net")
+plt.ylabel("Average MSE (Generalization error) of net")
 plt.title('Artificial neural network: Performance of optimizing parameter')
 plt.savefig('../Figures/ANN_iterations_performance.png')
 
@@ -312,7 +312,7 @@ plt.savefig('../Figures/RLM_best_net.png')
 fig, ax = plt.subplots()
 fig.set_figheight(5)
 fig.set_figwidth(10)
-plt.title("Logistic Regression: Attribute weights")
+plt.title("Linear Regression: Attribute weights")
 plt.ylabel("Attribute weight")
 plt.boxplot(LM_coefs)
 plt.xticks(range(len(attributeNames)+1),[""]+attributeNames,rotation = 90)
@@ -352,7 +352,7 @@ def ConfidenceInterval(x,confidence=.95):
     n = len(x)
     mu = np.mean(x)
     std_err = np.std(x)
-    h = std_err * stats.t.ppf((1 + confidence) / 2, n - 1)
+    h = std_err/np.sqrt(n) * stats.t.ppf((1 + confidence) / 2, n - 1)
     return [mu-h,mu+h]
 
 

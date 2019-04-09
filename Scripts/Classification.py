@@ -7,13 +7,12 @@ from toolbox_02450 import rocplot, confmatplot
 from platform import system
 from os import getcwd
 from toolbox_02450 import windows_graphviz_call
-from matplotlib.pyplot import figure, plot, xlabel, ylabel, legend, show, boxplot
+from matplotlib.pyplot import figure, plot, xlabel, ylabel, legend, show, boxplot, imshow
 from matplotlib.image import imread
-from matplotlib.pylab import figure, plot, xlabel, ylabel, legend, show
 import matplotlib.pyplot as plt
-#from tabulate import tabulate
+from tabulate import tabulate
 import graphviz as gv
-
+from sklearn.metrics import confusion_matrix
 #Best lambda fra LogReg
 lambda_interval = np.logspace(-6, 2, 10)
 
@@ -24,7 +23,7 @@ criterion='gini'
 target='isLegendary'
 
 # Class indices
-y = np.array(dOriginal[target])
+y = np.array(dOriginal[target],dtype=int)
 dOriginal=dOriginal.drop(target,axis=1)
 dNorm=dNorm.drop(target,axis=1)
 
@@ -38,8 +37,8 @@ N, M=X.shape
 
 ## Crossvalidation
 # Create crossvalidation partition for evaluation
-K2 = 2 #Outer K-fold
-K1 = 2  #Innter K-fold
+K2 = 10 #Outer K-fold
+K1 = 10  #Innter K-fold
 
 CV_inner = model_selection.KFold(K1, shuffle=True)
 CV_outer = model_selection.KFold(K2,shuffle=True)
@@ -69,6 +68,9 @@ net_best_depth = None
 best_depth = None
 CT_saved_performance = np.zeros((K2,len(tc)))
 
+#Baseline
+error_best_BL = 100
+
 #Errors with scaling. Each element will be scaled by |y_test_outer|. This will almost always be 1/10, but not exactly.
 #The sum of these will yield the overall MSE for ANN, RLM and the Baseline
 errors_CT_outer = np.zeros(K2)
@@ -88,7 +90,9 @@ for train_index_o, test_index_o in CV_outer.split(X,y):
     #There's no paramater to tune for the baseline
     errors_CT_inner = np.zeros((K1,len(tc)))
     errors_LogReg_inner = np.zeros((K1,len(lambda_interval)))
-    baseline = np.zeros(y[test_index_o].shape) 
+
+    counts = np.bincount(y[train_index_o])
+    baseline = np.argmax(counts)
 
     #Number of observations used for training and testing in inner CV
     #Equivelant to |D_par_i| in algorithm 6. Should be roughly 9/10*N
@@ -158,8 +162,8 @@ for train_index_o, test_index_o in CV_outer.split(X,y):
     
     #Save best lambda
     if error < error_best_LR:
-        y_est_best_LR = y_test
-        y_true_best_LR = y[test_index_o]
+        y_est_best_LR = y_logreg
+        y_true_best_LR = y_test
         error_best_LR = error
         LR_best_lambda = opt_lambda
         LR_best_model = model
@@ -177,17 +181,23 @@ for train_index_o, test_index_o in CV_outer.split(X,y):
     
     #Save best depth
     if error < error_best_CT:
-        y_est_best_CT = y_test
+        y_est_best_CT = y_dectree
         y_true_best_CT = y_test
         bestTree = model2
         error_best_CT = error
         best_depth = opt_depth
         
         
-    error = 100*(baseline!=y_test).sum().astype(float)/len(y_test)
+    error = 100*(baseline!=y_test).sum()/len(y_test)
     errors_baseline_outer[k_o] = error*len(test_index_o)/N 
     errors_baseline_outer_ns[k_o] = error     
     
+    #Save best error for baseline
+    if error < error_best_BL:
+        y_est_best_BL = np.ones(len(y_test),dtype=int)*baseline
+        y_true_best_BL = y_test
+        error_best_BL = error
+        best_BL = baseline    
     k_o+=1
 # Test if classifiers are significantly different using methods in section 9.3.3
 # by computing credibility interval. Notice this can also be accomplished by computing the p-value using
@@ -214,20 +224,22 @@ else:
 
 RapportMatrix=np.hstack((np.array(opt_depths).reshape(-1,1),errors_CT_outer.reshape(-1,1), np.array(opt_lambdas).reshape(-1,1),errors_LogReg_outer.reshape(-1,1), errors_baseline_outer.reshape(-1,1)))    
    
-ErrorMatrix=np.hstack((errors_LogReg_outer.reshape(-1,1), errors_CT_outer.reshape(-1,1), errors_baseline_outer.reshape(-1,1)))    
+ErrorMatrix=np.hstack((errors_LogReg_outer.reshape(-1,1), errors_CT_outer.reshape(-1,1), errors_baseline_outer.reshape(-1,1)))  
+"""  
 # Boxplot to compare Classification tree with Logistic Regression
 figure()
 boxplot(np.concatenate((errors_LogReg_outer.reshape(-1,1), errors_CT_outer.reshape(-1,1)),axis=1))
 xlabel('Logistic Regression   vs.   Classification Tree')
 ylabel('Cross-validation error [%]')
 #show()
-
+"""
 # Boxplot to compare Classification tree with Logistic Regression
 figure()
 boxplot(ErrorMatrix)
 xlabel('Logistic Regression   vs.   Classification Tree    vs. Baseline')
 ylabel('Cross-validation error [%]')
-#show()
+plt.grid()
+plt.savefig("../Figures/comparison.png")
 
 
 #Boxplot of weights
@@ -251,7 +263,7 @@ plt.figure(figsize=(6,6))
 plt.errorbar(np.log10(lambda_interval), y, yerr=yerr, fmt='o-',capsize=5,capthick=3,ms=10)
 plt.grid()
 plt.xlabel("Log10(Lambda) values")
-plt.ylabel("Average error of lambda values")
+plt.ylabel("Average generalization error of lambda values")
 plt.title('Logistic Regression: Performance of lambda parameter')
 plt.savefig('../Figures/LR_lambda_performance.png')
 
@@ -262,7 +274,7 @@ plt.figure(figsize=(6,6))
 plt.errorbar(tc, y, yerr=yerr, fmt='o-',capsize=5,capthick=3,ms=10)
 plt.grid()
 plt.xlabel("Tree depth")
-plt.ylabel('LogReg: Average error of tree depth values')
+plt.ylabel('LogReg: Average generalization error of tree depth values')
 plt.title("Decision tree: Performance of depth parameter")
 plt.savefig('../Figures/LR_depth_performance.png')
 
@@ -270,6 +282,31 @@ out = tree.export_graphviz(bestTree, out_file='tree_Legendary.dot', feature_name
 #Kør kommandoen "dot -Tpng tree_Legendary.dot -o tree_Legendary.png"
 # fra working directory for at se plot
 
+
+#Confusion Matrix Classification Tree
+cm1 = confusion_matrix(y_true_best_CT, y_est_best_CT)
+accuracy = 100*cm1.diagonal().sum()/cm1.sum(); error_rate = 100-accuracy
+figure()
+plt.imshow(cm1, cmap='binary', interpolation='None')
+plt.colorbar()
+plt.xticks(range(2)); plt.yticks(range(2))
+plt.xlabel('Predicted class'); plt.ylabel('Actual class')
+plt.title('Classification Tree\n(Accuracy: {0}%, Error Rate: {1}%)'.format(np.round(accuracy,2), np.round(error_rate,2)));
+plt.tight_layout()
+plt.savefig("../Figures/ConfusionMatrix/ClassTree.png")
+
+#Latex table for Classification
+data_table = np.zeros((K2,6))
+data_table[:,0] = np.array(range(K2),dtype=int) + 1
+data_table[:,1] = opt_depths
+data_table[:,2] = errors_CT_outer_ns
+data_table[:,3] = opt_lambdas
+data_table[:,4] = errors_LogReg_outer_ns
+data_table[:,5] = errors_baseline_outer_ns
+
+with open("../Figures/classification_tex.txt",'w') as handle:
+    handle.writelines(tabulate(data_table, tablefmt="latex", floatfmt=".3f"))
+    
 def ConfidenceInterval(x,confidence=.95):
     n = len(x)
     mu = np.mean(x)

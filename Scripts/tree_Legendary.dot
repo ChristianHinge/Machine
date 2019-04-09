@@ -1,16 +1,16 @@
 digraph Tree {
 node [shape=box] ;
-0 [label="Catch_Rate <= -1.192\ngini = 0.129\nsamples = 360\nvalue = [335, 25]"] ;
-1 [label="Undiscovered <= 0.341\ngini = 0.302\nsamples = 27\nvalue = [5, 22]"] ;
+0 [label="Catch_Rate <= -1.192\ngini = 0.121\nsamples = 649\nvalue = [607, 42]"] ;
+1 [label="Undiscovered <= 0.341\ngini = 0.287\nsamples = 46\nvalue = [8, 38]"] ;
 0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
-2 [label="gini = 0.0\nsamples = 3\nvalue = [3, 0]"] ;
+2 [label="gini = 0.0\nsamples = 4\nvalue = [4, 0]"] ;
 1 -> 2 ;
-3 [label="gini = 0.153\nsamples = 24\nvalue = [2, 22]"] ;
+3 [label="gini = 0.172\nsamples = 42\nvalue = [4, 38]"] ;
 1 -> 3 ;
-4 [label="Height_m <= 2.651\ngini = 0.018\nsamples = 333\nvalue = [330, 3]"] ;
+4 [label="Sp_Atk <= 2.147\ngini = 0.013\nsamples = 603\nvalue = [599, 4]"] ;
 0 -> 4 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
-5 [label="gini = 0.012\nsamples = 332\nvalue = [330, 2]"] ;
+5 [label="gini = 0.003\nsamples = 596\nvalue = [595, 1]"] ;
 4 -> 5 ;
-6 [label="gini = 0.0\nsamples = 1\nvalue = [0, 1]"] ;
+6 [label="gini = 0.49\nsamples = 7\nvalue = [4, 3]"] ;
 4 -> 6 ;
 }
