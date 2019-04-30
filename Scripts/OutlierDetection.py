@@ -6,14 +6,14 @@ from scipy.io import loadmat
 from toolbox_02450 import gausKernelDensity
 from sklearn.neighbors import NearestNeighbors
 from ProjectData import *
-
+from matplotlib import pyplot as plt
 # load data
+#y = np.array(dNorm["isLegendary"])
+#dNorm = dNorm.drop("isLegendary",axis = 1)
 X = np.matrix(dNorm)
+
 N, M = np.shape(X)
-
-
-
-
+common_outliers = np.zeros(X.shape[0])
 ### Gausian Kernel density estimator
 # cross-validate kernel width by leave-one-out-cross-validation
 # (efficient implementation in gausKernelDensity function)
@@ -42,12 +42,13 @@ density = density[i].reshape(-1,)
 figure(1)
 bar(range(N),density[:N])
 title('Density estimate')
-show()
+plt.savefig("../Figures/densities.png")
+
 # Possible outliers
 print('Density estimate: Possible outliers')
 for k in range(1,21):
     print('{0}. Pokemon Index: {1}'.format(k,i[k]))
-
+    common_outliers[i[k]] += 1
 
 ### K-neighbors density estimator
 # Neighbor to use:
@@ -67,12 +68,12 @@ density = density[i]
 figure(2)
 bar(range(N),density[:N])
 title('KNN density: Outlier score')
-show()
+plt.savefig("../Figures/KNN_density.png")
 # Possible outliers
 print('KNN density: Possible outliers')
 for k in range(1,21):
     print('{0}. Pokemon Index: {1}'.format(k,i[k]))
-
+    common_outliers[i[k]] += 1
 
 
 ### K-nearest neigbor average relative density
@@ -91,36 +92,16 @@ avg_rel_density = avg_rel_density[i_avg_rel]
 figure(3)
 bar(range(N),avg_rel_density[:N])
 title('KNN average relative density: Outlier score')
-show()
+plt.savefig("../Figures/KNN_ARD.png")
 # Possible outliers
 print('KNN average relative density: Possible outliers')
 for k in range(1,21):
     print('{0}. Pokemon Index: {1}'.format(k,i_avg_rel[k]))
+    common_outliers[i_avg_rel[k]] += 1
 
 
+i = common_outliers.argsort()[::-1][0:40]
 
-### Distance to 5'th nearest neighbor outlier score
-K = 5
-
-# Find the k nearest neighbors
-knn = NearestNeighbors(n_neighbors=K).fit(X)
-D, i = knn.kneighbors(X)
-
-# Outlier score
-score = D[:,K-1]
-# Sort the scores
-i = score.argsort()
-score = score[i[::-1]]
-
-# Plot k-neighbor estimate of outlier score (distances)
-figure(4)
-bar(range(N),score[:N])
-title('5th neighbor distance: Outlier score')
-show()
-# Possible outliers
-
-print('5th neighbor distance: Possible outliers')
-for k in range(1,21):
-    print('{0}. Pokemon Index: {1}'.format(k,i[k]))
-#    
-
+pokemonNames = np.array(dOriginal["Name"])
+for score, pokemon in zip(common_outliers[i],i):
+   print('{} Pokemon {} is marked as outlier {} times'.format(pokemon,pokemonNames[pokemon], score))
