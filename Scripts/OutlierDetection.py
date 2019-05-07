@@ -28,7 +28,7 @@ for i,w in enumerate(widths):
 val = logP.max()
 ind = logP.argmax()
 
-width=widths[ind]
+width=0.7#widths[ind]
 print('Optimal estimated width is: {0}'.format(width))
 
 # evaluate density for estimated width

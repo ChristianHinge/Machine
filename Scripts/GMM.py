@@ -9,6 +9,8 @@ from ProjectData import *
 from matplotlib.pyplot import cm
 from toolbox_02450 import clusterval
 
+
+print(list(dNorm))
 # Load Matlab data file and extract variables of interest
 selected_K = 4
 y = np.array(dNorm["isLegendary"],dtype=int)
@@ -21,11 +23,11 @@ C = len(classNames)
 
 centroid_data = np.zeros((dNorm.shape[0],selected_K))
 # Range of K's to try
-KRange = [4]
+KRange = [selected_K]
 T = len(KRange)
 
 covar_type = 'full'       # you can try out 'diag' as well
-reps = 3                  # number of fits with different initalizations, best result will be kept
+reps = 10                  # number of fits with different initalizations, best result will be kept
 init_procedure = 'kmeans' # 'kmeans' or 'random'
 
 # Allocate variables
@@ -74,19 +76,19 @@ for t,K in enumerate(KRange):
             
 
 # Plot results
-"""
+
 figure(1); 
 plot(KRange, BIC,'-*b')
 plot(KRange, AIC,'-xr')
-#plot(KRange, 2*CVE,'-ok')
+plot(KRange, 2*CVE,'-ok')
 legend(['BIC', 'AIC'])
 xlabel('K')
-show()
+#show()
 
-"""
+
 
 b = gmm.predict(X)
-Rand, Jaccard, NMI = clusterval(b,y)   
+Rand, Jaccard, NMI = clusterval(y,b)   
 print(Rand)
 print(Jaccard)
 print(NMI)
@@ -101,7 +103,7 @@ figs.set_figwidth(15)
 for i in range(len(intervals)-1):
     lower = intervals[i]
     upper = intervals[i+1]
-    print(type(axs))
+    #print(type(axs))
     
     #col = i%3
     ax = axs[i]
@@ -112,6 +114,10 @@ for i in range(len(intervals)-1):
 
 figs.suptitle("GMM Clustering",fontsize=30)
 #figs.tight_layout()
-plt.savefig("../Figures/Centroids.png",transparent=True)
+plt.savefig("../Figures/Centroids.png")
 print('Ran Exercise 11.1.5')
-
+#print(b)
+legendaryGroups = b[dOriginal["isLegendary"]==True]
+for i in range(4):
+    print("{} percent of group {} is legendary".format(round(sum(legendaryGroups == i)/sum(b==i)*100,2),i+1))
+    print(sum(b==i))
